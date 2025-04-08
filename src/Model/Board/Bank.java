@@ -1,14 +1,10 @@
 package Model.Board;
 
-/**
- * This class represents the Bank in the Monopoly game.
- * The Bank manages money, property deeds, houses, and hotels.
- * It provides methods for buying and selling properties,
- * houses, and hotels, as well as conducting auctions.
- */
-
 import Model.Houses;
 import Model.Property.Property;
+import Model.Spaces.RailroadSpace;
+import Model.Spaces.Space;
+import Model.Spaces.UtilitySpace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -330,6 +326,88 @@ public class Bank {
             System.out.println(highestBidder.getName() + " won the auction for " + property.getName() + " with a bid of $" + highestBid);
         } else {
             System.out.println("No one bid on " + property.getName() + ". It remains with the bank.");
+        }
+    }
+
+    /**
+     * Conducts an auction for a railroad space.
+     *
+     * @param railroad The railroad to auction
+     * @param players The list of players who can bid
+     */
+    public void auctionRailroad(RailroadSpace railroad, List<Player> players) {
+        System.out.println("Starting auction for " + railroad.getName());
+        System.out.println("Minimum bid: $1");
+
+        Map<Player, Integer> bids = new HashMap<>();
+        for (Player player : players) {
+            if (player.getMoney() > 0) {
+                int maxBid = Math.min(player.getMoney(), railroad.getPrice());
+                int bid = (int) (Math.random() * maxBid) + 1;
+                bids.put(player, bid);
+                System.out.println(player.getName() + " bids $" + bid);
+            }
+        }
+
+        // Find the highest bidder
+        Player highestBidder = null;
+        int highestBid = 0;
+
+        for (Map.Entry<Player, Integer> entry : bids.entrySet()) {
+            if (entry.getValue() > highestBid) {
+                highestBid = entry.getValue();
+                highestBidder = entry.getKey();
+            }
+        }
+
+        if (highestBidder != null) {
+            // Sell railroad to highest bidder
+            highestBidder.subtractMoney(highestBid);
+            railroad.setOwner(highestBidder);
+            System.out.println(highestBidder.getName() + " won the auction for " + railroad.getName() + " with a bid of $" + highestBid);
+        } else {
+            System.out.println("No one bid on " + railroad.getName() + ". It remains with the bank.");
+        }
+    }
+
+    /**
+     * Conducts an auction for a utility space.
+     *
+     * @param utility The utility to auction
+     * @param players The list of players who can bid
+     */
+    public void auctionUtility(UtilitySpace utility, List<Player> players) {
+        System.out.println("Starting auction for " + utility.getName());
+        System.out.println("Minimum bid: $1");
+
+        Map<Player, Integer> bids = new HashMap<>();
+        for (Player player : players) {
+            if (player.getMoney() > 0) {
+                int maxBid = Math.min(player.getMoney(), utility.getPrice());
+                int bid = (int) (Math.random() * maxBid) + 1;
+                bids.put(player, bid);
+                System.out.println(player.getName() + " bids $" + bid);
+            }
+        }
+
+        // Find the highest bidder
+        Player highestBidder = null;
+        int highestBid = 0;
+
+        for (Map.Entry<Player, Integer> entry : bids.entrySet()) {
+            if (entry.getValue() > highestBid) {
+                highestBid = entry.getValue();
+                highestBidder = entry.getKey();
+            }
+        }
+
+        if (highestBidder != null) {
+            // Sell utility to highest bidder
+            highestBidder.subtractMoney(highestBid);
+            utility.setOwner(highestBidder);
+            System.out.println(highestBidder.getName() + " won the auction for " + utility.getName() + " with a bid of $" + highestBid);
+        } else {
+            System.out.println("No one bid on " + utility.getName() + ". It remains with the bank.");
         }
     }
 

@@ -4,8 +4,6 @@ package Model.Cards; /**
  * The class has a map of the cards and a randomizer to shuffle the cards.
  */
 
-import Model.Board.Player;
-
 import java.util.*;
 
 /**

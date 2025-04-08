@@ -5,7 +5,6 @@ package Model.Spaces; /**
  * It extends the Model.Spaces.Space class.
  */
 
-import Model.Board.Player;
 import Model.GameState;
 
 import java.util.List;

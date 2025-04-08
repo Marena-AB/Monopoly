@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 /**
  * Represents a player in the Monopoly game.
  * Manages the player's money, position, properties, and game actions.
@@ -154,7 +155,6 @@ public class Player {
     public String getTokens() {
         return name + " has $" + money + " and is on space " + position;
     }
-
     /**
      * Handles buying property if the player has enough money.
      *
@@ -171,6 +171,29 @@ public class Player {
             return true;
         } else {
             System.out.println(name + " does not have enough money to buy " + property.getName());
+            return false;
+        }
+    }
+
+    /**
+     * Handles buying property if the player has enough money.
+     * This is an overloaded method that accepts a Space parameter.
+     *
+     * @param space The space to buy (must be a Property, RailroadSpace, or UtilitySpace)
+     * @return true if the space was successfully bought, false otherwise
+     */
+    public boolean buyProperty(Space space) {
+        if (space instanceof Property) {
+            Property property = (Property) space;
+            return buyProperty(property);
+        } else if (space instanceof RailroadSpace) {
+            RailroadSpace railroad = (RailroadSpace) space;
+            return buyRailroad(railroad);
+        } else if (space instanceof UtilitySpace) {
+            UtilitySpace utility = (UtilitySpace) space;
+            return buyUtility(utility);
+        } else {
+            System.out.println("Cannot buy this type of space: " + space.getType());
             return false;
         }
     }
@@ -318,7 +341,7 @@ public class Player {
         // Get all unique color groups from the player's properties
         Set<String> colorGroups = new HashSet<>();
         for (Property property : properties) {
-            colorGroups.add(property.getColorGroup());
+            ((HashSet<?>) colorGroups).add(property.getColorGroup());
         }
 
         // Check each color group to see if the player owns all properties in it
@@ -814,6 +837,7 @@ public class Player {
             }
         }
     }
+
     /**
      * Handles buying a railroad if the player has enough money.
      *
@@ -902,7 +926,7 @@ public class Player {
                         if (money >= railroad.getPrice()) {
                             boolean wantToBuy = true; // Simplified - in a real game this would be a player choice
                             if (wantToBuy) {
-                                buyProperty(railroad);
+                                buyRailroad(railroad);
                             }
                         }
                     }
@@ -951,7 +975,7 @@ public class Player {
                         if (money >= utility.getPrice()) {
                             boolean wantToBuy = true; // Simplified - in a real game this would be a player choice
                             if (wantToBuy) {
-                                buyProperty(utility);
+                                buyUtility(utility);
                             }
                         }
                     }
@@ -1087,4 +1111,5 @@ public class Player {
                 ", Token: " + token + ", Properties: " + properties.size() +
                 ", Mortgaged: " + mortgagedProperties.size() + ")";
     }
+}
 }

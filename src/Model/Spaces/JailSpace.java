@@ -1,6 +1,5 @@
 package Model.Spaces;
 
-import Model.Board.Player;
 import Model.GameState;
 
 /**

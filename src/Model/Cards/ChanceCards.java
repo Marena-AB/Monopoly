@@ -4,7 +4,6 @@ package Model.Cards; /**
  * It implements the Model.ChestAndCardSpot interface.
  * The class has a Map of Chance Cards. And is responsible for shuffling the cards.
  */
-import Model.Board.Player;
 
 import java.util.HashMap;
 import java.util.Map;

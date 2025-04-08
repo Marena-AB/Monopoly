@@ -4,8 +4,6 @@ package Model.Board; /**
  * It has a list of available tokens and ensures that players can only choose from those that remain.
  */
 
-import Model.Board.Player;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 

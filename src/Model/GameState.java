@@ -1,21 +1,16 @@
-package Model; /**
- * Model.GameState.java
- * This class represents the state of the game, including players, board, and game logic.
- * It manages player turns, properties, money transactions, and game status.
- */
+package Model;
 
 import Model.Board.Bank;
 import Model.Board.Dice;
 import Model.Board.Gameboard;
-import Model.Board.Player;
 import Model.Cards.ChanceCards;
 import Model.Cards.CommunityChestCards;
 import Model.Property.Property;
+import Model.Spaces.Space;
 
 import java.util.*;
 
 /**
- * Author: Aiden Clare
  * This class represents the state of the game, including players, board, and game logic.
  * It manages player turns, properties, money transactions, and game status.
  */
@@ -28,18 +23,18 @@ public class GameState {
     private ChanceCards chanceCards;
     private Map<Player, Boolean> isInJail;
     private boolean gameActive;
-    private Bank bank; // Added Model.Board.Bank reference
+    private Bank bank;
 
     /**
-     * Author: Aiden Clare
-     * Constructor for Model.GameState.
+     * Constructor for GameState.
      * Initializes the game state with players and a gameboard.
-     * @param players
-     * @param board
+     *
+     * @param players The list of players in the game
+     * @param board The game board
      */
     public GameState(List<Player> players, Gameboard board) {
-        this.players = players; // Initialize players
-        this.board = board;  // Use the provided board
+        this.players = players;
+        this.board = board;
         this.dice = new Dice();
         this.communityChestCards = new CommunityChestCards();
         this.chanceCards = new ChanceCards();
@@ -49,13 +44,13 @@ public class GameState {
         }
         this.gameActive = true;
         this.currentPlayerIndex = 0;
+
+        // Initialize card decks
         communityChestCards.cards();
         chanceCards.cards();
-        // Model.Board.Bank will be set separately
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the bank for this game.
      *
      * @return The bank
@@ -65,65 +60,42 @@ public class GameState {
     }
 
     /**
-     * Author: Aiden Clare
      * Sets the bank for this game.
      *
      * @param bank The bank to use
      */
     public void setBank(Bank bank) {
         this.bank = bank;
-    }
 
-    /**
-     * Author: Aiden Clare
-     * Starts the game loop where players take turns in the correct order.
-     * The game continues until all but one player is bankrupt.
-     */
-    public void startGame(List<Player> players, Gameboard gameboard) {
-        boolean gameActive = true;
-        int currentPlayerIndex = 0;
-
-        while (gameActive) {
-            Player currentPlayer = players.get(currentPlayerIndex);
-
-            // Skip bankrupt players
-            if (currentPlayer.getMoney() <= 0) {
-                players.remove(currentPlayer);
-                if (players.size() == 1) {
-                    System.out.println(players.get(0).getName() + " wins the game!");
-                    break;
-                }
-                currentPlayerIndex = currentPlayerIndex % players.size();
-                continue;
+        // Initialize the available properties in the bank
+        List<Property> properties = new ArrayList<>();
+        for (Space space : board.getSpaces()) {
+            if (space instanceof Property) {
+                properties.add((Property) space);
             }
-            System.out.println("It's " + currentPlayer.getName() + "'s turn.");
-            currentPlayer.takeTurn(gameboard, this);
-
-            // Move to next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         }
+        bank.setAvailableProperties(properties);
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the list of players in the game.
-     * @return
+     *
+     * @return The list of players
      */
     public List<Player> getPlayers() {
         return players;
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the current player.
-     * @return
+     *
+     * @return The current player
      */
     public Player getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
 
     /**
-     * Author: Aiden Clare
      * Moves to the next player's turn.
      * This method updates the current player index to the next player in the list.
      */
@@ -132,142 +104,143 @@ public class GameState {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the gameboard for this game.
-     * @return
+     *
+     * @return The gameboard
      */
-
     public Gameboard getBoard() {
         return board;
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the property ownership map.
      * This map contains the property IDs and their corresponding owner names.
-     * @return
+     *
+     * @return The property ownership map
      */
-
     public Map<Integer, String> getPropertyOwnership() {
         return board.getPropertyOwnership();
     }
 
     /**
-     * Author: Aiden Clare
      * Rolls the dice and returns the result.
-     * This method uses the Model.Board.Dice class to roll two dice and returns the sum of their values.
-     * @return
+     * This method uses the Dice class to roll two dice and returns the sum of their values.
+     *
+     * @return The sum of the dice values
      */
     public int rollDice() {
         return dice.rollDice();
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the values of the dice.
      * This method returns an array containing the values of the two dice.
-     * @return
+     *
+     * @return An array with the dice values [die1, die2]
      */
     public int[] getDiceValues() {
         return new int[]{dice.getDie1Value(), dice.getDie2Value()};
     }
 
     /**
-     * Author: Aiden Clare
      * Draws a chance card for the current player.
-     * This method uses the Model.Cards.ChanceCards class to shuffle and draw a card.
-     * @return
+     * This method uses the ChanceCards class to shuffle and draw a card.
+     *
+     * @return The drawn chance card text
      */
     public String drawChanceCard() {
-        return chanceCards.shuffleCards();
+        return ChanceCards.shuffleCards();
     }
 
     /**
-     * Author: Aiden Clare
      * Draws a community chest card for the current player.
-     * This method uses the Model.Cards.CommunityChestCards class to shuffle and draw a card.
-     * @return
+     * This method uses the CommunityChestCards class to shuffle and draw a card.
+     *
+     * @return The drawn community chest card text
      */
     public String drawCommunityChestCard() {
-        return communityChestCards.shuffleCards();
+        return CommunityChestCards.shuffleCards();
     }
 
     /**
-     * Author: Aiden Clare
      * Transfers money between two players.
      * This method updates the money of both players involved in the transaction.
-     * @param from
-     * @param to
-     * @param amount
+     *
+     * @param from The player paying money
+     * @param to The player receiving money
+     * @param amount The amount of money to transfer
+     * @return true if the transfer was successful, false if the payer doesn't have enough money
      */
-    public void transferMoney(Player from, Player to, int amount) {
-        from.deductMoney(amount);
-        to.addMoney(amount);
+    public boolean transferMoney(Player from, Player to, int amount) {
+        if (from.getMoney() >= amount) {
+            from.subtractMoney(amount);
+            to.addMoney(amount);
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Author: Aiden Clare
      * Collects money from the bank for a player.
-     * @param player
-     * @param amount
+     *
+     * @param player The player receiving money
+     * @param amount The amount to collect
      */
     public void collectFromBank(Player player, int amount) {
         player.addMoney(amount);
     }
 
     /**
-     * Author: Aiden Clare
-     * Pays money to the bank for a player.
-     * This method updates the player's money and the bank's balance.
-     * @param player
-     * @param amount
+     * Pays money to the bank from a player.
+     *
+     * @param player The player paying money
+     * @param amount The amount to pay
+     * @return true if the payment was successful, false if the player doesn't have enough money
      */
-
-    public void payToBank(Player player, int amount) {
-        player.deductMoney(amount);
+    public boolean payToBank(Player player, int amount) {
+        return player.subtractMoney(amount);
     }
 
     /**
-     * Author: Aiden Clare
      * Checks if the game is still active.
-     * @return
+     *
+     * @return true if the game is active, false otherwise
      */
     public boolean isGameActive() {
         return gameActive;
     }
 
     /**
-     * Author: Aiden Clare
      * Checks if a player is in jail.
-     * @param player
-     * @return
+     *
+     * @param player The player to check
+     * @return true if the player is in jail, false otherwise
      */
     public boolean isPlayerInJail(Player player) {
         return isInJail.getOrDefault(player, false);
     }
 
     /**
-     * Author: Aiden Clare
      * Sends a player to jail.
-     * @param player
+     *
+     * @param player The player to send to jail
      */
     public void sendToJail(Player player) {
         isInJail.put(player, true);
     }
 
     /**
-     * Author: Aiden Clare
      * Releases a player from jail.
-     * @param player
+     *
+     * @param player The player to release from jail
      */
-
     public void releaseFromJail(Player player) {
         isInJail.put(player, false);
     }
 
     /**
-     * Author: Aiden Clare
      * Displays the current game state.
+     * This is a view functionality and should eventually be moved to the View layer.
      */
     public void displayGameState() {
         System.out.println("Game State: ");
@@ -277,9 +250,10 @@ public class GameState {
     }
 
     /**
-     * Author: Aiden Clare
      * Displays the status of a player.
-     * @param player
+     * This is a view functionality and should eventually be moved to the View layer.
+     *
+     * @param player The player whose status to display
      */
     public void displayPlayerStatus(Player player) {
         System.out.println(player.getName() + ": $" + player.getMoney() +
@@ -287,7 +261,6 @@ public class GameState {
     }
 
     /**
-     * Author: Marena
      * Handles a player going bankrupt.
      * This includes returning all properties to the bank and removing the player from the game.
      *
@@ -302,8 +275,8 @@ public class GameState {
             property.setHouses(0);
             property.setHasHotel(false);
             property.setMortgaged(false);
+            bank.getAvailableProperties().add(property);
         }
-
 
         // Remove player from the game
         players.remove(player);
@@ -317,113 +290,105 @@ public class GameState {
     }
 
     /**
-     * Author: Aiden Clare
-     * Edited by Marena
-     * Handles a player skipping bankruptcy.
-     * @param player
+     * Gets the dice for this game.
+     *
+     * @return The dice
      */
-
-    public void skipBankrupt(Player player) {
-        players.remove(player);
-    }
-
-    /**
-     * Author: Aiden Clare
-     * Gets the current player index.
-     * @return
-     */
-
     public Object getDice() {
         return dice;
     }
 
     /**
-     * Author: Aiden Clare
      * Sets the dice for this game.
-     * @param dice
+     *
+     * @param dice The new dice
      */
-
     public void setDice(Dice dice) {
         this.dice = dice;
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the community chest cards for this game.
-     * @return
+     *
+     * @return The community chest cards
      */
-
     public CommunityChestCards getCommunityChestCards() {
         return communityChestCards;
     }
 
     /**
-     * Author: Aiden Clare
-     * Sets the community chest cards for this game.
-     * @return
+     * Gets the chance cards for this game.
+     *
+     * @return The chance cards
      */
-
     public ChanceCards getChanceCards() {
         return chanceCards;
     }
 
     /**
-     * Author: Aiden Clare
-     * Sets the chance cards for this game.
-     * @param gameActive
+     * Sets the game active status.
+     *
+     * @param gameActive The new game active status
      */
-
     public void setGameActive(boolean gameActive) {
         this.gameActive = gameActive;
     }
 
     /**
-     * Author: Aiden Clare
      * Sets the players for this game.
-     * @param players
+     *
+     * @param players The new list of players
      */
-
     public void setPlayers(List<Player> players) {
         this.players = players;
     }
 
     /**
-     * Author: Aiden Clare
-     * Sets the current player index for this game.
-     * @param board
+     * Sets the gameboard for this game.
+     *
+     * @param board The new gameboard
      */
-
     public void setBoard(Gameboard board) {
         this.board = board;
     }
 
     /**
-     * Author: Aiden Clare
-     * Sets the property ownership map for this game.
-     * @return
-     */
-
-    public Collection<Object> getIsInJail() {
-        return Collections.singleton(isInJail.values());
-    }
-
-    /**
-     * Author: Aiden Clare
-     * Gets the game active status.
-     * @return
-     */
-
-    public boolean getGameActive() {
-        return gameActive;
-    }
-
-    /**
-     * Author: Aiden Clare
      * Gets the current player index.
-     * @return
+     *
+     * @return The current player index
      */
-
     public int getCurrentPlayerIndex() {
         return currentPlayerIndex;
+    }
+
+    /**
+     * Sets the current player index.
+     *
+     * @param index The new current player index
+     */
+    public void setCurrentPlayerIndex(int index) {
+        if (index >= 0 && index < players.size()) {
+            this.currentPlayerIndex = index;
+        }
+    }
+
+    /**
+     * Starts a new game by giving money to players and initializing the game state.
+     */
+    public void initializeGame() {
+        // Give each player starting money
+        for (Player player : players) {
+            bank.giveStartingMoney(player);
+        }
+
+        // Reset game state
+        gameActive = true;
+        currentPlayerIndex = 0;
+
+        // Reset jail status
+        isInJail.clear();
+        for (Player player : players) {
+            isInJail.put(player, false);
+        }
     }
 }

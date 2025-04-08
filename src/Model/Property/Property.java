@@ -1,7 +1,5 @@
 package Model.Property;
 
-import Model.Board.Bank;
-import Model.Board.Player;
 import Model.GameState;
 import Model.Houses;
 import Model.Spaces.Space;
@@ -13,22 +11,21 @@ import Model.Cards.TitleDeedCard;
  */
 public class Property extends Space {
     private int price;
-    private String colorGroup;
-    private Player owner;
     private int houses;
     private boolean hasHotel;
     private boolean isMortgaged;
     private TitleDeedCard titleDeed;
 
     /**
-     * Author: Marena
      * Constructs a new property on the Monopoly board with a title deed card.
      *
      * @param name     The name of the property
      * @param position The position on the board
+     * @param price    The purchase price of the property
+     * @param colorGroup The color group of the property
      */
-    public Property(String name, int position) {
-        super(name, position, "Model.Property.Property");
+    public Property(String name, int position, int price, String colorGroup) {
+        super(name, position, "Property");
         this.price = price;
         this.colorGroup = colorGroup;
         this.owner = null;  // No owner initially
@@ -37,37 +34,77 @@ public class Property extends Space {
         this.isMortgaged = false;
 
         // Create corresponding title deed card with rent values
-        // These rent values should be specific to each property in a real implementation
+        // These rent values are based on standard Monopoly rules
+        int baseRent = calculateBaseRent(price);
+        int[] houseRents = calculateHouseRents(baseRent, colorGroup);
+        int hotelRent = calculateHotelRent(baseRent, colorGroup);
+        int houseCost = Houses.getHousePrice(colorGroup);
+
+        this.titleDeed = new TitleDeedCard(name, colorGroup, price, baseRent, houseRents, hotelRent, houseCost);
+    }
+
+    /**
+     * Simplified constructor for when specific values are not provided.
+     * This constructor can be used for backward compatibility.
+     *
+     * @param name     The name of the property
+     * @param position The position on the board
+     */
+    public Property(String name, int position) {
+        this(name, position, getDefaultPrice(position), getDefaultColorGroup(position));
+    }
+
+    /**
+     * Calculates the base rent for a property based on its price.
+     * By Monopoly standards, base rent is typically 10% of the purchase price.
+     *
+     * @param price The purchase price of the property
+     * @return The base rent
+     */
+    private int calculateBaseRent(int price) {
+        return (int)(price * 0.1); // Standard: base rent is 10% of purchase price
+    }
+
+    /**
+     * Calculates the rent values for properties with houses.
+     * Follows standard Monopoly progression of rent increases.
+     *
+     * @param baseRent The base rent without houses
+     * @param colorGroup The color group of the property
+     * @return An array of rent values for 1-4 houses
+     */
+    private int[] calculateHouseRents(int baseRent, String colorGroup) {
         int[] houseRents = new int[4];
-        int  baseRent = 0;
-        switch (colorGroup) {
-            case "Brown":
-            case "Light Blue":
+
+        // Different color groups have different rent progressions
+        switch (colorGroup.toLowerCase()) {
+            case "brown":
+            case "light blue":
                 houseRents[0] = baseRent * 5;    // 1 house
                 houseRents[1] = baseRent * 15;   // 2 houses
                 houseRents[2] = baseRent * 45;   // 3 houses
                 houseRents[3] = baseRent * 80;   // 4 houses
                 break;
-            case "Pink":
-            case "Orange":
+            case "pink":
+            case "orange":
                 houseRents[0] = baseRent * 5;    // 1 house
                 houseRents[1] = baseRent * 15;   // 2 houses
                 houseRents[2] = baseRent * 45;   // 3 houses
-                houseRents[3] = baseRent * 80;   // 4 houses
+                houseRents[3] = baseRent * 90;   // 4 houses
                 break;
-            case "Red":
-            case "Yellow":
-                houseRents[0] = baseRent * 5;    // 1 house
-                houseRents[1] = baseRent * 15;   // 2 houses
-                houseRents[2] = baseRent * 45;   // 3 houses
-                houseRents[3] = baseRent * 80;   // 4 houses
+            case "red":
+            case "yellow":
+                houseRents[0] = baseRent * 6;    // 1 house
+                houseRents[1] = baseRent * 18;   // 2 houses
+                houseRents[2] = baseRent * 50;   // 3 houses
+                houseRents[3] = baseRent * 100;  // 4 houses
                 break;
-            case "Green":
-            case "Dark Blue":
-                houseRents[0] = baseRent * 5;    // 1 house
-                houseRents[1] = baseRent * 15;   // 2 houses
-                houseRents[2] = baseRent * 45;   // 3 houses
-                houseRents[3] = baseRent * 80;   // 4 houses
+            case "green":
+            case "dark blue":
+                houseRents[0] = baseRent * 7;    // 1 house
+                houseRents[1] = baseRent * 20;   // 2 houses
+                houseRents[2] = baseRent * 55;   // 3 houses
+                houseRents[3] = baseRent * 110;  // 4 houses
                 break;
             default:
                 houseRents[0] = baseRent * 5;    // Default values
@@ -76,36 +113,66 @@ public class Property extends Space {
                 houseRents[3] = baseRent * 80;
         }
 
-        int houseCost = Houses.getHousePrice(colorGroup);
-        int hotelRent = baseRent * 100;
-
-        this.titleDeed = new TitleDeedCard(name, colorGroup, price, baseRent, houseRents, hotelRent, houseCost);
+        return houseRents;
     }
 
     /**
-     * Author: Marena
-     * Sets the owner of the property.
+     * Calculates the hotel rent based on base rent and color group.
      *
-     * @param owner The player who owns the property
+     * @param baseRent The base rent without houses
+     * @param colorGroup The color group of the property
+     * @return The hotel rent
      */
-    @Override
-    public void setOwner(Player owner) {
-        this.owner = owner;
+    private int calculateHotelRent(int baseRent, String colorGroup) {
+        // Hotel rent is typically higher than 4-house rent
+        switch (colorGroup.toLowerCase()) {
+            case "brown":
+            case "light blue":
+                return baseRent * 125;
+            case "pink":
+            case "orange":
+                return baseRent * 140;
+            case "red":
+            case "yellow":
+                return baseRent * 150;
+            case "green":
+            case "dark blue":
+                return baseRent * 170;
+            default:
+                return baseRent * 125;
+        }
     }
 
     /**
-     * Author: Marena
-     * Gets the owner of the property.
+     * Gets the default price for a property based on its position.
+     * This is a simplified approach for backward compatibility.
      *
-     * @return The owner of the property
+     * @param position The position on the board
+     * @return The default price
      */
-    @Override
-    public Player getOwner() {
-        return owner;
+    private static int getDefaultPrice(int position) {
+        // Simple rule: Properties closer to Go are cheaper
+        // In a real implementation, this would be a lookup table with actual prices
+        int basePrice = 60;
+        return basePrice + ((position / 5) * 20);
     }
 
     /**
-     * Author: Marena
+     * Gets the default color group for a property based on its position.
+     * This is a simplified approach for backward compatibility.
+     *
+     * @param position The position on the board
+     * @return The default color group
+     */
+    private static String getDefaultColorGroup(int position) {
+        // Simple mapping of positions to color groups
+        // In a real implementation, this would be a lookup table with actual assignments
+        String[] colorGroups = {"Brown", "Light Blue", "Pink", "Orange",
+                "Red", "Yellow", "Green", "Dark Blue"};
+        return colorGroups[(position / 5) % colorGroups.length];
+    }
+
+    /**
      * Gets the title deed card for this property.
      *
      * @return The title deed card
@@ -115,18 +182,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
-     * Gets the name of the property.
-     *
-     * @return The name of the property
-     */
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Author: Marena
      * Gets the price of the property.
      *
      * @return The price of the property
@@ -136,17 +191,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
-     * Gets the color group of the property.
-     *
-     * @return The color group of the property
-     */
-    public String getColorGroup() {
-        return colorGroup;
-    }
-
-    /**
-     * Author: Marena
      * Adds a house to the property if possible.
      *
      * @return True if a house was added, false otherwise
@@ -166,7 +210,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Removes a house from the property if possible.
      *
      * @return True if a house was removed, false otherwise
@@ -186,7 +229,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Checks if the property is owned.
      *
      * @return True if the property is owned, false otherwise
@@ -196,7 +238,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Checks if the property is mortgaged.
      *
      * @return True if the property is mortgaged, false otherwise
@@ -216,7 +257,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Handles what happens when a player lands on this property.
      *
      * @param player The player who landed on the property
@@ -248,9 +288,8 @@ public class Property extends Space {
                     player.buyProperty(this);
                 } else {
                     // Auction the property if player doesn't want to buy
-                    Bank bank = gameState.getBank();
-                    if (bank != null) {
-                        bank.auctionProperty(this, gameState.getPlayers());
+                    if (gameState.getBank() != null) {
+                        gameState.getBank().auctionProperty(this, gameState.getPlayers());
                     }
                 }
             } else {
@@ -260,21 +299,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
-     * Prompt the player to buy the property.
-     * This is a placeholder for a real UI interaction.
-     *
-     * @param player The player to prompt
-     * @return true if the player wants to buy, false otherwise
-     */
-    private boolean promptToBuy(Player player) {
-        // In a real implementation, this would show a prompt to the player
-        // For now, we'll just return true to simulate the player always buying
-        return true;
-    }
-
-    /**
-     * Author: Marena
      * Calculates the rent based on houses, hotels, and monopoly ownership.
      *
      * @param gameState The current game state
@@ -299,9 +323,8 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Returns a string representation of the property.
-     * @return
+     * @return A formatted string with property details
      */
     @Override
     public String toString() {
@@ -310,14 +333,13 @@ public class Property extends Space {
         sb.append(" - Price: $").append(price);
         sb.append(", Color: ").append(colorGroup);
         sb.append(", Owner: ").append(owner != null ? owner.getName() : "None");
-        sb.append(", Model.Houses: ").append(houses);
+        sb.append(", Houses: ").append(houses);
         sb.append(", Hotel: ").append(hasHotel ? "Yes" : "No");
         sb.append(", Mortgaged: ").append(isMortgaged ? "Yes" : "No");
         return sb.toString();
     }
 
     /**
-     * Author: Marena
      * Checks if the property has a hotel.
      *
      * @return True if the property has a hotel, false otherwise
@@ -327,7 +349,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the number of houses on the property.
      *
      * @return The number of houses
@@ -337,7 +358,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Sets the number of houses on the property.
      *
      * @param houses The new number of houses
@@ -347,7 +367,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Gets the base rent of the property.
      *
      * @return The base rent
@@ -357,7 +376,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Sets whether the property has a hotel.
      *
      * @param hasHotel True if the property should have a hotel, false otherwise
@@ -367,7 +385,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Gets the mortgage value of the property.
      *
      * @return The mortgage value (half the purchase price)
@@ -377,7 +394,6 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
      * Gets the cost to unmortgage the property.
      *
      * @return The unmortgage cost (mortgage value plus 10% interest)
@@ -387,12 +403,11 @@ public class Property extends Space {
     }
 
     /**
-     * Author: Marena
-     * Checks if the property is a utility.
+     * Called when a player lands on the property.
+     * This is an implementation of the method from the Space class.
      */
-
     @Override
     public void playerOnProperty() {
-        System.out.println("Model.Board.Player landed on property " + name);
+        System.out.println("Player landed on property " + name);
     }
 }
