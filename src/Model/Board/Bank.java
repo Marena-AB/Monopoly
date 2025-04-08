@@ -1,6 +1,8 @@
-package Model.Board; /**
- * This class represents the Model.Board.Bank in the Monopoly game.
- * The Model.Board.Bank manages money, property deeds, houses, and hotels.
+package Model.Board;
+
+/**
+ * This class represents the Bank in the Monopoly game.
+ * The Bank manages money, property deeds, houses, and hotels.
  * It provides methods for buying and selling properties,
  * houses, and hotels, as well as conducting auctions.
  */
@@ -14,9 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Author: Marena Abboud
- * Represents the Model.Board.Bank in the Monopoly game.
- * The Model.Board.Bank manages money, property deeds, houses, and hotels.
+ * Represents the Bank in the Monopoly game.
+ * The Bank manages money, property deeds, houses, and hotels.
  */
 public class Bank {
     private int money;
@@ -28,18 +29,16 @@ public class Bank {
     private static final int STARTING_MONEY = 1500;
 
     /**
-     * Author: Marena Abboud
-     * Constructs a new Model.Board.Bank with all resources initialized.
+     * Constructs a new Bank with all resources initialized.
      */
     public Bank() {
-        this.money = Integer.MAX_VALUE; // Model.Board.Bank has unlimited money
+        this.money = Integer.MAX_VALUE; // Bank has unlimited money
         this.availableProperties = new ArrayList<>();
         this.houses = MAX_HOUSES;
         this.hotels = MAX_HOTELS;
     }
 
     /**
-     * Author : Marena
      * Sets the initial properties available for purchase.
      *
      * @param properties The list of properties from the game board
@@ -47,12 +46,17 @@ public class Bank {
     public void setAvailableProperties(List<Property> properties) {
         this.availableProperties = new ArrayList<>(properties);
     }
+
+    /**
+     * Gets the list of available properties.
+     *
+     * @return The list of available properties
+     */
     public List<Property> getAvailableProperties() {
         return availableProperties;
     }
 
     /**
-     * Author: Marena Abboud
      * Gives starting money to a player.
      *
      * @param player The player to receive the money
@@ -63,7 +67,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Handles a player passing Go by giving them $200.
      *
      * @param player The player who passed Go
@@ -74,7 +77,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Sells a property to a player if they have enough money.
      *
      * @param property The property to sell
@@ -94,6 +96,7 @@ public class Bank {
 
         player.subtractMoney(property.getPrice());
         property.setOwner(player);
+        player.getProperties().add(property); // Add property to player's collection
         availableProperties.remove(property);
 
         System.out.println(player.getName() + " bought " + property.getName() + " for $" + property.getPrice());
@@ -101,15 +104,15 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Sells houses to a player for a specific property if the bank has enough houses.
      *
      * @param property The property to add houses to
      * @param player The player buying the houses
      * @param count The number of houses to buy
+     * @param gameboard The game board instance
      * @return true if the houses were successfully sold, false otherwise
      */
-    public boolean sellHouses(Property property, Player player, int count) {
+    public boolean sellHouses(Property property, Player player, int count, Gameboard gameboard) {
         // Check if bank has enough houses
         if (houses < count) {
             System.out.println("The bank does not have enough houses. Only " + houses + " available.");
@@ -123,16 +126,15 @@ public class Bank {
         }
 
         // Check if property is part of a monopoly
-        Gameboard board = new Gameboard(); // You'll need to pass the actual board instance
-        if (!board.playerOwnsAllInColorGroup(player, property.getColorGroup())) {
+        if (!gameboard.playerOwnsAllInColorGroup(player, property.getColorGroup())) {
             System.out.println("You must own all properties in the " + property.getColorGroup() + " color group to buy houses.");
             return false;
         }
 
         // Check if houses will be evenly distributed
-        List<Property> propertiesInGroup = board.getPropertiesByColorGroup(property.getColorGroup());
+        List<Property> propertiesInGroup = gameboard.getPropertiesByColorGroup(property.getColorGroup());
         if (!willHousesBeEvenlyDistributed(propertiesInGroup, property, count)) {
-            System.out.println("Model.Houses must be evenly distributed across all properties in a color group.");
+            System.out.println("Houses must be evenly distributed across all properties in a color group.");
             return false;
         }
 
@@ -160,7 +162,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Sells a hotel to a player for a specific property if the bank has enough hotels.
      *
      * @param property The property to add a hotel to
@@ -206,7 +207,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Buys back houses from a player.
      *
      * @param property The property to remove houses from
@@ -245,7 +245,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Buys back a hotel from a player.
      *
      * @param property The property to remove the hotel from
@@ -289,7 +288,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Conducts an auction for a property when a player doesn't want to buy it.
      *
      * @param property The property to auction
@@ -326,6 +324,7 @@ public class Bank {
             // Sell property to highest bidder
             highestBidder.subtractMoney(highestBid);
             property.setOwner(highestBidder);
+            highestBidder.getProperties().add(property); // Add property to player's collection
             availableProperties.remove(property);
 
             System.out.println(highestBidder.getName() + " won the auction for " + property.getName() + " with a bid of $" + highestBid);
@@ -335,7 +334,6 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Checks if adding houses to a property will maintain even distribution across all properties in the color group.
      *
      * @param propertiesInGroup All properties in the color group
@@ -360,16 +358,18 @@ public class Bank {
     }
 
     /**
-     * Author: Marena Abboud
      * Returns the number of houses available in the bank.
+     *
+     * @return The number of houses available
      */
     public int getHouses() {
         return houses;
     }
 
     /**
-     * Author: Marena Abboud
      * Returns the number of hotels available in the bank.
+     *
+     * @return The number of hotels available
      */
     public int getHotels() {
         return hotels;

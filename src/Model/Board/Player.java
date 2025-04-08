@@ -1,6 +1,7 @@
-package Model.Board; /**
- * Monopoly Game
- * this class represents a player in the game of Monopoly.
+package Model.Board;
+
+/**
+ * This class represents a player in the game of Monopoly.
  * It manages the player's money, position, properties, and game actions.
  */
 
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Author: Marena
  * Represents a player in the Monopoly game.
  * Manages the player's money, position, properties, and game actions.
  */
@@ -28,11 +28,9 @@ public class Player {
     private List<Property> mortgagedProperties;
     private boolean hasGetOutOfJailFreeCard;
     private int turnsInJail;
-    public Dice dice;  // Made public for easier access
+    private Dice dice;
 
     /**
-     * Author: Aiden Clare
-     * edited by Marena
      * Constructs a new player with the given name.
      *
      * @param name The player's name
@@ -51,7 +49,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the player's name.
      *
      * @return The player's name
@@ -61,7 +58,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the player's token.
      *
      * @return The player's token
@@ -71,7 +67,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Allows the player to choose a token. Ensures they pick an available one.
      *
      * @param chosenToken The token the player wants to use
@@ -90,7 +85,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the player's current money amount.
      *
      * @return The player's money
@@ -100,7 +94,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the player's current position on the board.
      *
      * @return The player's position
@@ -110,7 +103,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Sets the player's position on the board.
      *
      * @param position The new position
@@ -120,7 +112,6 @@ public class Player {
     }
 
     /**
-     * Author: Tati Curtis
      * Adds money to the player's account.
      *
      * @param amount The amount to add
@@ -131,7 +122,6 @@ public class Player {
     }
 
     /**
-     * Author: Tati Curtis
      * Subtracts money from the player's account if they have enough.
      *
      * @param amount The amount to subtract
@@ -148,7 +138,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets the player's current balance.
      *
      * @return The player's money
@@ -158,7 +147,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Gets a string representation of the player's tokens and position.
      *
      * @return A string with the player's information
@@ -168,7 +156,6 @@ public class Player {
     }
 
     /**
-     * Author: Aiden Clare
      * Handles buying property if the player has enough money.
      *
      * @param property The property to buy
@@ -189,7 +176,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Pays rent to another player.
      *
      * @param owner The property owner receiving the rent
@@ -205,22 +191,21 @@ public class Player {
             return true;
         } else {
             System.out.println(name + " is bankrupt and cannot pay $" + amount + " to " + owner.getName());
-            return false; // Model.Board.Player is bankrupt
+            return false; // Player is bankrupt
         }
     }
 
     /**
-     * Author: Marena
      * Receives rent from another player.
      *
      * @param amount The amount of rent received
      */
     public void receiveRent(int amount) {
         money += amount;
+        System.out.println(name + " received $" + amount + " in rent. New balance: $" + money);
     }
 
     /**
-     * Author: Marena
      * Mortgages a property to get cash from the bank.
      * The property must be owned by this player and not already mortgaged.
      *
@@ -261,7 +246,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Unmortgages a property by paying the unmortgage cost to the bank.
      * The property must be owned by this player and currently mortgaged.
      *
@@ -304,7 +288,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Gets all mortgaged properties owned by this player.
      *
      * @return The list of mortgaged properties
@@ -314,7 +297,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Checks if a property is mortgaged.
      *
      * @param property The property to check
@@ -325,7 +307,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Gets all color groups that this player has a monopoly in.
      *
      * @param gameboard The game board
@@ -351,7 +332,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Buys a house for a property if possible.
      *
      * @param property The property to buy a house for
@@ -387,7 +367,7 @@ public class Player {
         // Check if houses will be evenly distributed
         List<Property> propertiesInGroup = gameboard.getPropertiesByColorGroup(property.getColorGroup());
         if (!willHousesBeEvenlyDistributed(propertiesInGroup, property)) {
-            System.out.println("Model.Houses must be evenly distributed across properties in a color group");
+            System.out.println("Houses must be evenly distributed across properties in a color group");
             return false;
         }
 
@@ -415,7 +395,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Buys a hotel for a property if possible.
      *
      * @param property The property to buy a hotel for
@@ -465,14 +444,13 @@ public class Player {
 
         // Buy the hotel
         subtractMoney(hotelCost);
-        property.addHouse(); // This will convert 4 houses to a hotel in the Model.Property.Property class
+        property.addHouse(); // This will convert 4 houses to a hotel in the Property class
 
         System.out.println(name + " bought a hotel for " + property.getName() + " for $" + hotelCost);
         return true;
     }
 
     /**
-     * Author: Marena
      * Checks if adding a house to a property will maintain even distribution across all properties in the color group.
      *
      * @param propertiesInGroup All properties in the color group
@@ -496,7 +474,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Sells a house from a property back to the bank.
      *
      * @param property The property to sell a house from
@@ -540,7 +517,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Determines if the player should go to jail based on dice rolls.
      *
      * @return true if the player should go to jail, false otherwise
@@ -570,7 +546,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Takes a turn for the player.
      *
      * @param gameboard The game board
@@ -620,7 +595,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Handles a player's turn when they are in jail.
      *
      * @param gameState The current game state
@@ -691,7 +665,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Performs dynamic turn steps based on where the player landed.
      * This method should be called after the player has moved to a new position.
      *
@@ -740,7 +713,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Handles the effects of Chance and Community Chest cards.
      * This is a simplified implementation that handles a few common card effects.
      *
@@ -786,12 +758,234 @@ public class Player {
                     }
                 }
             }
+        } else if (cardText.contains("each player")) {
+            // Handle payments to or from each player
+            int amount = 0;
+            String[] words = cardText.split(" ");
+            for (int i = 0; i < words.length; i++) {
+                if (words[i].startsWith("$")) {
+                    try {
+                        amount = Integer.parseInt(words[i].substring(1));
+                        break;
+                    } catch (NumberFormatException e) {
+                        // Not a valid number, continue
+                    }
+                }
+            }
+
+            if (amount > 0) {
+                if (cardText.toLowerCase().contains("pay each")) {
+                    // Pay each player
+                    for (Player player : gameState.getPlayers()) {
+                        if (player != this) {
+                            subtractMoney(amount);
+                            player.addMoney(amount);
+                            System.out.println(name + " paid $" + amount + " to " + player.getName());
+                        }
+                    }
+                } else if (cardText.toLowerCase().contains("collect from each")) {
+                    // Collect from each player
+                    for (Player player : gameState.getPlayers()) {
+                        if (player != this) {
+                            player.subtractMoney(amount);
+                            addMoney(amount);
+                            System.out.println(name + " collected $" + amount + " from " + player.getName());
+                        }
+                    }
+                }
+            }
+        } else if (cardText.contains("Advance")) {
+            // Handle "Advance to..." cards
+            String destination = "";
+            if (cardText.contains("Illinois")) {
+                destination = "Illinois Avenue";
+            } else if (cardText.contains("St. Charles")) {
+                destination = "St. Charles Place";
+            } else if (cardText.contains("Boardwalk")) {
+                destination = "Boardwalk";
+            } else if (cardText.contains("nearest Railroad")) {
+                destination = "nearest Railroad";
+            } else if (cardText.contains("nearest Utility")) {
+                destination = "nearest Utility";
+            }
+
+            if (!destination.isEmpty()) {
+                advanceToLocation(destination, gameState);
+            }
         }
-        // More complex card effects would need more detailed implementations
+    }
+    /**
+     * Handles buying a railroad if the player has enough money.
+     *
+     * @param railroad The railroad to buy
+     * @return true if the railroad was successfully bought, false otherwise
+     */
+    public boolean buyRailroad(RailroadSpace railroad) {
+        if (money >= railroad.getPrice()) {
+            money -= railroad.getPrice();
+            railroad.setOwner(this);
+            System.out.println(name + " bought " + railroad.getName() + " for $" + railroad.getPrice() +
+                    ". New balance: $" + money);
+            return true;
+        } else {
+            System.out.println(name + " does not have enough money to buy " + railroad.getName());
+            return false;
+        }
     }
 
     /**
-     * Author: Marena
+     * Handles buying a utility if the player has enough money.
+     *
+     * @param utility The utility to buy
+     * @return true if the utility was successfully bought, false otherwise
+     */
+    public boolean buyUtility(UtilitySpace utility) {
+        if (money >= utility.getPrice()) {
+            money -= utility.getPrice();
+            utility.setOwner(this);
+            System.out.println(name + " bought " + utility.getName() + " for $" + utility.getPrice() +
+                    ". New balance: $" + money);
+            return true;
+        } else {
+            System.out.println(name + " does not have enough money to buy " + utility.getName());
+            return false;
+        }
+    }
+
+    /**
+     * Advances the player to a specific location on the board.
+     *
+     * @param destination The name of the destination or a special descriptor like "nearest Railroad"
+     * @param gameState The current game state
+     */
+    private void advanceToLocation(String destination, GameState gameState) {
+        Gameboard board = gameState.getBoard();
+        List<Space> spaces = board.getSpaces();
+
+        if (destination.equals("nearest Railroad")) {
+            // Find the nearest railroad
+            int closestRailroad = -1;
+            int closestDistance = Integer.MAX_VALUE;
+
+            for (int i = 0; i < spaces.size(); i++) {
+                Space space = spaces.get(i);
+                if (space instanceof RailroadSpace) {
+                    int distance = (i - position + spaces.size()) % spaces.size();
+                    if (distance > 0 && distance < closestDistance) {
+                        closestDistance = distance;
+                        closestRailroad = i;
+                    }
+                }
+            }
+
+            if (closestRailroad != -1) {
+                System.out.println(name + " advances to " + spaces.get(closestRailroad).getName());
+                boolean passedGo = closestRailroad < position;
+                setPosition(closestRailroad);
+
+                if (passedGo) {
+                    System.out.println(name + " passed Go and collects $200");
+                    addMoney(200);
+                }
+                // Check if a Railroad space has an owner and make the player pay double rent
+                Space railroadSpace = spaces.get(closestRailroad);
+                if (railroadSpace instanceof RailroadSpace) {
+                    RailroadSpace railroad = (RailroadSpace) railroadSpace;
+                    Player owner = railroad.getOwner();
+                    if (owner != null && owner != this) {
+                        // Pay double rent
+                        int rent = railroad.calculateRent(gameState) * 2;
+                        System.out.println(name + " must pay double rent ($" + rent + ") for landing on " + railroad.getName());
+                        payRent(owner, rent);
+                    } else if (owner == null) {
+                        // Option to buy the railroad
+                        if (money >= railroad.getPrice()) {
+                            boolean wantToBuy = true; // Simplified - in a real game this would be a player choice
+                            if (wantToBuy) {
+                                buyProperty(railroad);
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (destination.equals("nearest Utility")) {
+            // Find the nearest utility
+            int closestUtility = -1;
+            int closestDistance = Integer.MAX_VALUE;
+
+            for (int i = 0; i < spaces.size(); i++) {
+                Space space = spaces.get(i);
+                if (space instanceof UtilitySpace) {
+                    int distance = (i - position + spaces.size()) % spaces.size();
+                    if (distance > 0 && distance < closestDistance) {
+                        closestDistance = distance;
+                        closestUtility = i;
+                    }
+                }
+            }
+
+            if (closestUtility != -1) {
+                System.out.println(name + " advances to " + spaces.get(closestUtility).getName());
+                boolean passedGo = closestUtility < position;
+                setPosition(closestUtility);
+
+                if (passedGo) {
+                    System.out.println(name + " passed Go and collects $200");
+                    addMoney(200);
+                }
+
+                // Check if a Utility space has an owner and make the player pay rent based on dice roll
+                Space utilitySpace = spaces.get(closestUtility);
+                if (utilitySpace instanceof UtilitySpace) {
+                    UtilitySpace utility = (UtilitySpace) utilitySpace;
+                    Player owner = utility.getOwner();
+                    if (owner != null && owner != this) {
+                        // Roll dice to determine rent
+                        int diceRoll = dice.rollDice();
+                        // Charge 10 times the dice roll for utilities landed on via Chance or Community Chest
+                        int rent = diceRoll * 10;
+                        System.out.println(name + " must pay special utility rent ($" + rent + ") for landing on " + utility.getName());
+                        payRent(owner, rent);
+                    } else if (owner == null) {
+                        // Option to buy the utility
+                        if (money >= utility.getPrice()) {
+                            boolean wantToBuy = true; // Simplified - in a real game this would be a player choice
+                            if (wantToBuy) {
+                                buyProperty(utility);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Find the named location
+            int destinationPosition = -1;
+            for (int i = 0; i < spaces.size(); i++) {
+                if (spaces.get(i).getName().equals(destination)) {
+                    destinationPosition = i;
+                    break;
+                }
+            }
+
+            if (destinationPosition != -1) {
+                System.out.println(name + " advances to " + destination);
+                boolean passedGo = destinationPosition < position && position != 0;
+                setPosition(destinationPosition);
+
+                if (passedGo) {
+                    System.out.println(name + " passed Go and collects $200");
+                    addMoney(200);
+                }
+
+                // Handle actions for the new space
+                performTurnActions(gameState);
+            } else {
+                System.out.println("Could not find location: " + destination);
+            }
+        }
+    }
+
+    /**
      * Handles landing on a tax space.
      *
      * @param taxSpace The tax space landed on
@@ -807,10 +1001,18 @@ public class Player {
 
         System.out.println(name + " must pay $" + taxAmount + " in taxes");
         subtractMoney(taxAmount);
+
+        // Add the tax money to Free Parking if using house rules
+        for (Space space : gameState.getBoard().getSpaces()) {
+            if (space instanceof FreeParkingSpace) {
+                FreeParkingSpace freeParkingSpace = (FreeParkingSpace) space;
+                freeParkingSpace.addMoneyToPool(taxAmount);
+                break;
+            }
+        }
     }
 
     /**
-     * Author: Marena
      * Deducts money from the player's account.
      * Alias for subtractMoney for compatibility.
      *
@@ -821,7 +1023,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Gets all properties owned by this player.
      *
      * @return The list of properties owned by the player
@@ -831,7 +1032,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Sets whether this player has a Get Out of Jail Free card.
      *
      * @param hasCard Whether the player has the card
@@ -841,7 +1041,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Checks if the player has a Get Out of Jail Free card.
      *
      * @return true if the player has the card, false otherwise
@@ -851,7 +1050,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Gets the number of turns the player has been in jail.
      *
      * @return The number of turns in jail
@@ -861,7 +1059,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Sets the number of turns the player has been in jail.
      *
      * @param turns The number of turns
@@ -871,7 +1068,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Checks if the player is bankrupt (has no money).
      *
      * @return true if the player is bankrupt, false otherwise
@@ -881,7 +1077,6 @@ public class Player {
     }
 
     /**
-     * Author: Marena
      * Returns a string representation of the player.
      *
      * @return A string representation of the player
