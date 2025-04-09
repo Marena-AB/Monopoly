@@ -4,10 +4,9 @@ import Model.Board.Bank;
 import Model.Board.Dice;
 import Model.Board.Gameboard;
 import Model.Board.Player;
+import Model.Cards.Card;
 import Model.Cards.ChanceCard;
-import Model.Cards.ChanceCards;
 import Model.Cards.CommunityChestCard;
-import Model.Cards.CommunityChestCards;
 import Model.Property.Property;
 import Model.Spaces.Space;
 
@@ -22,8 +21,10 @@ public class GameState {
     private int currentPlayerIndex;
     private Gameboard board;
     private Dice dice;
-    private CommunityChestCards communityChestCards;
-    private ChanceCards chanceCards;
+    private List<ChanceCard> chanceCardDeck;
+    private List<CommunityChestCard> communityChestCardDeck;
+    private int currentChanceCardIndex;
+    private int currentCommunityChestCardIndex;
     private Map<Player, Boolean> isInJail;
     private boolean gameActive;
     private Bank bank;
@@ -39,14 +40,107 @@ public class GameState {
         this.players = players;
         this.board = board;
         this.dice = new Dice();
-        this.communityChestCards = new CommunityChestCards();
-        this.chanceCards = new ChanceCards();
         this.isInJail = new HashMap<>();
+
+        // Initialize card decks
+        this.chanceCardDeck = new ArrayList<>();
+        this.communityChestCardDeck = new ArrayList<>();
+        this.currentChanceCardIndex = 0;
+        this.currentCommunityChestCardIndex = 0;
+
+        // Initialize player jail status
         for (Player player : this.players) {
             isInJail.put(player, false);
         }
+
         this.gameActive = true;
         this.currentPlayerIndex = 0;
+
+        // Initialize cards
+        initializeChanceCards();
+        initializeCommunityChestCards();
+    }
+
+    /**
+     * Initializes the game, including giving money to players and setting up the game state.
+     */
+    public void initializeGame() {
+        // Give each player starting money
+        for (Player player : players) {
+            bank.giveStartingMoney(player);
+        }
+
+        // Reset game state
+        gameActive = true;
+        currentPlayerIndex = 0;
+
+        // Reset jail status
+        isInJail.clear();
+        for (Player player : players) {
+            isInJail.put(player, false);
+        }
+
+        // Initialize card decks
+        initializeChanceCards();
+        initializeCommunityChestCards();
+    }
+
+    /**
+     * Initializes the Chance card deck with standard Monopoly Chance cards.
+     */
+    private void initializeChanceCards() {
+        chanceCardDeck.clear();
+        currentChanceCardIndex = 0;
+
+        // Standard Monopoly Chance cards
+        chanceCardDeck.add(new ChanceCard("Advance to Go. Collect $200."));
+        chanceCardDeck.add(new ChanceCard("Advance to Illinois Avenue. If you pass Go, collect $200."));
+        chanceCardDeck.add(new ChanceCard("Advance to St. Charles Place. If you pass Go, collect $200."));
+        chanceCardDeck.add(new ChanceCard("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which they are otherwise entitled."));
+        chanceCardDeck.add(new ChanceCard("Advance to the nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner 10 times the amount thrown."));
+        chanceCardDeck.add(new ChanceCard("Bank pays you dividend of $50."));
+        chanceCardDeck.add(new ChanceCard("Get Out of Jail Free."));
+        chanceCardDeck.add(new ChanceCard("Go Back 3 Spaces."));
+        chanceCardDeck.add(new ChanceCard("Go to Jail. Go directly to Jail. Do not pass Go. Do not collect $200."));
+        chanceCardDeck.add(new ChanceCard("Make general repairs on all your property. For each house pay $25. For each hotel pay $100."));
+        chanceCardDeck.add(new ChanceCard("Speeding fine $15."));
+        chanceCardDeck.add(new ChanceCard("Take a trip to Reading Railroad. If you pass Go, collect $200."));
+        chanceCardDeck.add(new ChanceCard("You have been elected Chairman of the Board. Pay each player $50."));
+        chanceCardDeck.add(new ChanceCard("Your building loan matures. Collect $150."));
+        chanceCardDeck.add(new ChanceCard("You have won a crossword competition. Collect $100."));
+        chanceCardDeck.add(new ChanceCard("Advance to Boardwalk."));
+
+        // Shuffle the deck
+        Collections.shuffle(chanceCardDeck);
+    }
+
+    /**
+     * Initializes the Community Chest card deck with standard Monopoly Community Chest cards.
+     */
+    private void initializeCommunityChestCards() {
+        communityChestCardDeck.clear();
+        currentCommunityChestCardIndex = 0;
+
+        // Standard Monopoly Community Chest cards
+        communityChestCardDeck.add(new CommunityChestCard("Advance to Go. Collect $200."));
+        communityChestCardDeck.add(new CommunityChestCard("Bank error in your favor. Collect $200."));
+        communityChestCardDeck.add(new CommunityChestCard("Doctor's fee. Pay $50."));
+        communityChestCardDeck.add(new CommunityChestCard("From sale of stock you get $50."));
+        communityChestCardDeck.add(new CommunityChestCard("Get Out of Jail Free."));
+        communityChestCardDeck.add(new CommunityChestCard("Go to Jail. Go directly to Jail. Do not pass Go. Do not collect $200."));
+        communityChestCardDeck.add(new CommunityChestCard("Holiday fund matures. Receive $100."));
+        communityChestCardDeck.add(new CommunityChestCard("Income tax refund. Collect $20."));
+        communityChestCardDeck.add(new CommunityChestCard("It is your birthday. Collect $10 from each player."));
+        communityChestCardDeck.add(new CommunityChestCard("Life insurance matures. Collect $100."));
+        communityChestCardDeck.add(new CommunityChestCard("Pay hospital fees of $100."));
+        communityChestCardDeck.add(new CommunityChestCard("Pay school fees of $50."));
+        communityChestCardDeck.add(new CommunityChestCard("Receive $25 consultancy fee."));
+        communityChestCardDeck.add(new CommunityChestCard("You are assessed for street repairs. $40 per house. $115 per hotel."));
+        communityChestCardDeck.add(new CommunityChestCard("You have won second prize in a beauty contest. Collect $10."));
+        communityChestCardDeck.add(new CommunityChestCard("You inherit $100."));
+
+        // Shuffle the deck
+        Collections.shuffle(communityChestCardDeck);
     }
 
     /**
@@ -142,27 +236,80 @@ public class GameState {
     }
 
     /**
-     * Draws a chance card for the current player.
-     * This method uses the ChanceCards class to shuffle and draw a card.
+     * Draws a Chance card from the deck.
+     * If the deck is exhausted, it is reshuffled.
      *
-     * @return The drawn chance card text
+     * @return The drawn Chance card description
      */
     public String drawChanceCard() {
-        ChanceCard card = chanceCards.drawCard();
-        card.executeEffect(getCurrentPlayer(), this);
-        return card.getDescription();
+        if (chanceCardDeck.isEmpty()) {
+            initializeChanceCards();
+        }
+
+        if (currentChanceCardIndex >= chanceCardDeck.size()) {
+            Collections.shuffle(chanceCardDeck);
+            currentChanceCardIndex = 0;
+        }
+
+        ChanceCard drawnCard = chanceCardDeck.get(currentChanceCardIndex);
+        currentChanceCardIndex++;
+
+        // If it's a "Get Out of Jail Free" card, remove it from the deck until it's returned
+        if (drawnCard.getDescription().contains("Get Out of Jail Free")) {
+            chanceCardDeck.remove(currentChanceCardIndex - 1);
+            currentChanceCardIndex--;
+        }
+
+        // Execute the card's effect
+        drawnCard.executeEffect(getCurrentPlayer(), this);
+
+        return drawnCard.getDescription();
     }
 
     /**
-     * Draws a community chest card for the current player.
-     * This method uses the CommunityChestCards class to shuffle and draw a card.
+     * Draws a Community Chest card from the deck.
+     * If the deck is exhausted, it is reshuffled.
      *
-     * @return The drawn community chest card text
+     * @return The drawn Community Chest card description
      */
     public String drawCommunityChestCard() {
-        CommunityChestCard card = communityChestCards.drawCard();
-        card.executeEffect(getCurrentPlayer(), this);
-        return card.getDescription();
+        if (communityChestCardDeck.isEmpty()) {
+            initializeCommunityChestCards();
+        }
+
+        if (currentCommunityChestCardIndex >= communityChestCardDeck.size()) {
+            Collections.shuffle(communityChestCardDeck);
+            currentCommunityChestCardIndex = 0;
+        }
+
+        CommunityChestCard drawnCard = communityChestCardDeck.get(currentCommunityChestCardIndex);
+        currentCommunityChestCardIndex++;
+
+        // If it's a "Get Out of Jail Free" card, remove it from the deck until it's returned
+        if (drawnCard.getDescription().contains("Get Out of Jail Free")) {
+            communityChestCardDeck.remove(currentCommunityChestCardIndex - 1);
+            currentCommunityChestCardIndex--;
+        }
+
+        // Execute the card's effect
+        drawnCard.executeEffect(getCurrentPlayer(), this);
+
+        return drawnCard.getDescription();
+    }
+
+    /**
+     * Returns a "Get Out of Jail Free" card to the appropriate deck.
+     *
+     * @param cardType The type of card ("Chance" or "Community Chest")
+     */
+    public void returnGetOutOfJailFreeCard(String cardType) {
+        if (cardType.equals("Chance")) {
+            chanceCardDeck.add(new ChanceCard("Get Out of Jail Free."));
+            Collections.shuffle(chanceCardDeck);
+        } else if (cardType.equals("Community Chest")) {
+            communityChestCardDeck.add(new CommunityChestCard("Get Out of Jail Free."));
+            Collections.shuffle(communityChestCardDeck);
+        }
     }
 
     /**
@@ -315,21 +462,21 @@ public class GameState {
     }
 
     /**
-     * Gets the community chest cards for this game.
+     * Gets the Chance card deck.
      *
-     * @return The community chest cards
+     * @return The Chance card deck
      */
-    public CommunityChestCards getCommunityChestCards() {
-        return communityChestCards;
+    public List<ChanceCard> getChanceCardDeck() {
+        return chanceCardDeck;
     }
 
     /**
-     * Gets the chance cards for this game.
+     * Gets the Community Chest card deck.
      *
-     * @return The chance cards
+     * @return The Community Chest card deck
      */
-    public ChanceCards getChanceCards() {
-        return chanceCards;
+    public List<CommunityChestCard> getCommunityChestCardDeck() {
+        return communityChestCardDeck;
     }
 
     /**
@@ -376,39 +523,6 @@ public class GameState {
     public void setCurrentPlayerIndex(int index) {
         if (index >= 0 && index < players.size()) {
             this.currentPlayerIndex = index;
-        }
-    }
-
-    /**
-     * Starts a new game by giving money to players and initializing the game state.
-     */
-    public void initializeGame() {
-        // Give each player starting money
-        for (Player player : players) {
-            bank.giveStartingMoney(player);
-        }
-
-        // Reset game state
-        gameActive = true;
-        currentPlayerIndex = 0;
-
-        // Reset jail status
-        isInJail.clear();
-        for (Player player : players) {
-            isInJail.put(player, false);
-        }
-    }
-
-    /**
-     * Returns a "Get Out of Jail Free" card to the appropriate deck.
-     *
-     * @param cardType The type of card ("Chance" or "Community Chest")
-     */
-    public void returnGetOutOfJailFreeCard(String cardType) {
-        if (cardType.equals("Chance")) {
-            chanceCards.returnGetOutOfJailFreeCard();
-        } else if (cardType.equals("Community Chest")) {
-            communityChestCards.returnGetOutOfJailFreeCard();
         }
     }
 }
