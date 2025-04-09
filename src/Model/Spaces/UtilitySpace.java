@@ -1,5 +1,6 @@
 package Model.Spaces;
 
+import Model.Board.Player;
 import Model.GameState;
 
 /**
@@ -9,7 +10,7 @@ import Model.GameState;
  */
 public class UtilitySpace extends Space {
     private int price;
-    private Player owner;
+    private Model.Board.Player owner;
     private static final int PRICE = 150; // Standard price for utilities in Monopoly
 
     /**
@@ -41,7 +42,7 @@ public class UtilitySpace extends Space {
      *
      * @param owner The player who owns the utility
      */
-    public void setOwner(Player owner) {
+    public void setOwner(Model.Board.Player owner) {
         this.owner = owner;
     }
 
@@ -51,7 +52,7 @@ public class UtilitySpace extends Space {
      *
      * @return The owner of the utility
      */
-    public Player getOwner() {
+    public Model.Board.Player getOwner() {
         return owner;
     }
 
@@ -75,7 +76,7 @@ public class UtilitySpace extends Space {
      * @param gameState The current game state
      * @return The rent amount to be paid
      */
-    public int calculateRent(int diceRoll, GameState gameState) {
+    public int calculateRent(int diceRoll, Model.GameState gameState) {
         if (owner == null) {
             return 0;
         }
@@ -108,7 +109,7 @@ public class UtilitySpace extends Space {
      * @param player The player who landed on the utility
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         System.out.println(player.getName() + " landed on " + name);
 
         if (!isOwned()) {
@@ -117,7 +118,7 @@ public class UtilitySpace extends Space {
             if (player.getMoney() >= price) {
                 boolean wantToBuy = true; // In a real game, this would be a player decision
                 if (wantToBuy) {
-                    buyUtility(player);
+                    player.buyUtility(this);
                 }
             } else {
                 System.out.println(player.getName() + " cannot afford to buy " + name);
@@ -132,25 +133,6 @@ public class UtilitySpace extends Space {
             player.payRent(owner, rent);
         } else {
             System.out.println(player.getName() + " owns this utility.");
-        }
-    }
-
-    /**
-     * Author: Marena
-     * Handles buying the utility.
-     *
-     * @param player The player buying the utility
-     * @return True if the utility was successfully bought, false otherwise
-     */
-    public boolean buyUtility(Player player) {
-        if (player.getMoney() >= price) {
-            player.subtractMoney(price);
-            setOwner(player);
-            System.out.println(player.getName() + " bought " + name + " for $" + price);
-            return true;
-        } else {
-            System.out.println(player.getName() + " does not have enough money to buy " + name);
-            return false;
         }
     }
 

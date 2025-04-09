@@ -262,7 +262,7 @@ public class Property extends Space {
      * @param player The player who landed on the property
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         System.out.println(player.getName() + " landed on " + name);
 
         if (isOwned()) {
@@ -282,8 +282,7 @@ public class Property extends Space {
             // Logic for player to decide to buy would be handled elsewhere
             if (player.getMoney() >= price) {
                 // In a real game, this would be a player decision
-                // For now we'll assume the player always wants to buy if they can afford it
-                boolean wantToBuy = true; // Simplified for implementation
+                boolean wantToBuy = true;
                 if (wantToBuy) {
                     player.buyProperty(this);
                 } else {

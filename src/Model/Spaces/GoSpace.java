@@ -1,5 +1,6 @@
 package Model.Spaces;
 
+import Model.Board.Player;
 import Model.GameState;
 
 /**
@@ -26,7 +27,7 @@ public class GoSpace extends SpecialSpace {
      * @param player The player who landed on Go
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         System.out.println(player.getName() + " landed on Go and collects $" + GO_AMOUNT);
         player.addMoney(GO_AMOUNT);
     }
@@ -39,7 +40,7 @@ public class GoSpace extends SpecialSpace {
      * @param player The player who passed Go
      * @param gameState The current game state
      */
-    public static void onPass(Player player, GameState gameState) {
+    public static void onPass(Model.Board.Player player, Model.GameState gameState) {
         System.out.println(player.getName() + " passed Go and collects $" + GO_AMOUNT);
         player.addMoney(GO_AMOUNT);
     }
@@ -52,7 +53,7 @@ public class GoSpace extends SpecialSpace {
      * @param player The player to move to Go
      * @param gameState The current game state
      */
-    public static void moveToGo(Player player, GameState gameState) {
+    public static void moveToGo(Model.Board.Player player, Model.GameState gameState) {
         player.setPosition(0);
         System.out.println(player.getName() + " moved to Go and collects $" + GO_AMOUNT);
         player.addMoney(GO_AMOUNT);
@@ -64,6 +65,6 @@ public class GoSpace extends SpecialSpace {
      */
     @Override
     public void playerOnSpecialSpace() {
-        System.out.println("Model.Board.Player landed on Go and collects $" + GO_AMOUNT);
+        System.out.println("Player landed on Go and collects $" + GO_AMOUNT);
     }
 }

@@ -1,5 +1,6 @@
 package Model.Spaces;
 
+import Model.Board.Player;
 import Model.GameState;
 
 /**
@@ -25,7 +26,7 @@ public class JailSpace extends SpecialSpace {
      * @param player The player who landed on Jail
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         // If the player is not sent to jail, they're just visiting
         if (!gameState.isPlayerInJail(player)) {
             System.out.println(player.getName() + " is just visiting Jail.");
@@ -40,7 +41,7 @@ public class JailSpace extends SpecialSpace {
      * @param player The player to send to jail
      * @param gameState The current game state
      */
-    public static void goToJail(Player player, GameState gameState) {
+    public static void goToJail(Model.Board.Player player, Model.GameState gameState) {
         player.setPosition(10); // Jail is at position 10 on the board
         gameState.sendToJail(player);
         System.out.println(player.getName() + " has been sent to Jail!");
@@ -54,7 +55,7 @@ public class JailSpace extends SpecialSpace {
      * @param gameState The current game state
      * @return True if the player successfully paid and got out, false otherwise
      */
-    public boolean payToGetOut(Player player, GameState gameState) {
+    public boolean payToGetOut(Model.Board.Player player, Model.GameState gameState) {
         if (gameState.isPlayerInJail(player) && player.getMoney() >= JAIL_FEE) {
             player.subtractMoney(JAIL_FEE);
             gameState.releaseFromJail(player);
@@ -75,7 +76,7 @@ public class JailSpace extends SpecialSpace {
      * @param gameState The current game state
      * @return True if the player rolled doubles and got out, false otherwise
      */
-    public boolean tryRollForFreedom(Player player, GameState gameState) {
+    public boolean tryRollForFreedom(Model.Board.Player player, Model.GameState gameState) {
         if (gameState.isPlayerInJail(player)) {
             int roll = gameState.rollDice();
             int[] diceValues = gameState.getDiceValues();
@@ -106,14 +107,14 @@ public class JailSpace extends SpecialSpace {
      * @param gameState The current game state
      * @return True if card was used successfully, false otherwise
      */
-    public boolean useGetOutOfJailFreeCard(Player player, GameState gameState) {
+    public boolean useGetOutOfJailFreeCard(Model.Board.Player player, Model.GameState gameState) {
         // This would require tracking if players have these cards
         // For now, just a placeholder implementation
-        boolean hasCard = false; // Implement logic to check if player has the card
+        boolean hasCard = player.hasGetOutOfJailFreeCard();
 
         if (gameState.isPlayerInJail(player) && hasCard) {
             gameState.releaseFromJail(player);
-            // Remove the card from player's possession
+            player.setHasGetOutOfJailFreeCard(false);
             System.out.println(player.getName() + " used a Get Out of Jail Free card!");
             return true;
         }
@@ -124,9 +125,8 @@ public class JailSpace extends SpecialSpace {
      * Author: Marena
      * Handles a player landing on the Jail space.
      */
-
     @Override
     public void playerOnSpecialSpace() {
-        System.out.println("Model.Board.Player is at Jail (Just Visiting)");
+        System.out.println("Player is at Jail (Just Visiting)");
     }
 }

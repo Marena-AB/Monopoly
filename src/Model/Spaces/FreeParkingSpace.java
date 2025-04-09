@@ -1,5 +1,6 @@
 package Model.Spaces;
 
+import Model.Board.Player;
 import Model.GameState;
 
 /**
@@ -30,7 +31,7 @@ public class FreeParkingSpace extends SpecialSpace {
      * @param gameState The current game state
      * @param useHouseRules Whether to use the house rule where player collects money
      */
-    public void onLand(Player player, GameState gameState, boolean useHouseRules) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState, boolean useHouseRules) {
         System.out.println(player.getName() + " landed on Free Parking.");
 
         if (useHouseRules && moneyPool > 0) {
@@ -68,7 +69,7 @@ public class FreeParkingSpace extends SpecialSpace {
      * @param player The player who landed on Free Parking
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         onLand(player, gameState, false);
     }
 
@@ -76,9 +77,8 @@ public class FreeParkingSpace extends SpecialSpace {
      * Author: Marena Abboud
      * This method is called when a player lands on a special space.
      */
-
     @Override
     public void playerOnSpecialSpace() {
-        System.out.println("Model.Board.Player landed on Free Parking");
+        System.out.println("Player landed on Free Parking");
     }
 }

@@ -1,17 +1,19 @@
-package Model.Spaces; /**
+package Model.Spaces;
+
+import Model.Board.Player;
+import Model.GameState;
+
+import java.util.List;
+
+/**
  * Author: Marena
  * Model.Spaces.RailroadSpace.java
  * this class represents a railroad space on the Monopoly board.
  * It extends the Model.Spaces.Space class.
  */
-
-import Model.GameState;
-
-import java.util.List;
-
 public class RailroadSpace extends Space {
     private int price;
-    private Player owner;
+    private Model.Board.Player owner;
     private final int BASE_RENT = 25;
 
     /**
@@ -43,7 +45,7 @@ public class RailroadSpace extends Space {
      *
      * @param owner The player who owns the railroad
      */
-    public void setOwner(Player owner) {
+    public void setOwner(Model.Board.Player owner) {
         this.owner = owner;
     }
 
@@ -53,7 +55,7 @@ public class RailroadSpace extends Space {
      *
      * @return The owner of the railroad
      */
-    public Player getOwner() {
+    public Model.Board.Player getOwner() {
         return owner;
     }
 
@@ -76,7 +78,7 @@ public class RailroadSpace extends Space {
      * @param gameState The current game state
      * @return The rent amount to be paid
      */
-    public int calculateRent(GameState gameState) {
+    public int calculateRent(Model.GameState gameState) {
         if (owner == null) {
             return 0;
         }
@@ -88,7 +90,7 @@ public class RailroadSpace extends Space {
         for (Space space : spaces) {
             if (space instanceof RailroadSpace) {
                 RailroadSpace railroad = (RailroadSpace) space;
-                Player railroadOwner = railroad.getOwner();
+                Model.Board.Player railroadOwner = railroad.getOwner();
 
                 // Check if this railroad has the same owner as the current railroad
                 if (railroadOwner != null && railroadOwner.getName().equals(owner.getName())) {
@@ -113,12 +115,20 @@ public class RailroadSpace extends Space {
      * @param player    The player who landed on the railroad
      * @param gameState The current game state
      */
-    public void onLand(Player player, GameState gameState) {
+    public void onLand(Model.Board.Player player, Model.GameState gameState) {
         System.out.println(player.getName() + " landed on " + name);
 
         if (!isOwned()) {
             System.out.println(name + " is not owned. It costs $" + price);
             // Logic for player to decide to buy would be handled elsewhere
+            if (player.getMoney() >= price) {
+                boolean wantToBuy = true; // In a real game, this would be a player decision
+                if (wantToBuy) {
+                    player.buyRailroad(this);
+                }
+            } else {
+                System.out.println(player.getName() + " cannot afford to buy " + name);
+            }
         } else if (owner != player) {
             int rent = calculateRent(gameState);
             System.out.println(player.getName() + " must pay $" + rent + " to " + owner.getName());
@@ -145,6 +155,6 @@ public class RailroadSpace extends Space {
      */
     @Override
     public void playerOnRailroad() {
-        System.out.println("Model.Board.Player landed on railroad " + name);
+        System.out.println("Player landed on railroad " + name);
     }
 }

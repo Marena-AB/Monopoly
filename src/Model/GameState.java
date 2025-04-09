@@ -3,6 +3,7 @@ package Model;
 import Model.Board.Bank;
 import Model.Board.Dice;
 import Model.Board.Gameboard;
+import Model.Board.Player;
 import Model.Cards.ChanceCards;
 import Model.Cards.CommunityChestCards;
 import Model.Property.Property;
@@ -227,6 +228,8 @@ public class GameState {
      */
     public void sendToJail(Player player) {
         isInJail.put(player, true);
+        player.setPosition(10); // Move to jail space
+        System.out.println(player.getName() + " has been sent to Jail!");
     }
 
     /**
@@ -236,6 +239,8 @@ public class GameState {
      */
     public void releaseFromJail(Player player) {
         isInJail.put(player, false);
+        player.setTurnsInJail(0);
+        System.out.println(player.getName() + " has been released from Jail!");
     }
 
     /**
@@ -294,7 +299,7 @@ public class GameState {
      *
      * @return The dice
      */
-    public Object getDice() {
+    public Dice getDice() {
         return dice;
     }
 
