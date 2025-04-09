@@ -9,7 +9,7 @@ import Model.Spaces.JailSpace;
  * Represents a Community Chest card in the Monopoly game.
  * Each card has a specific effect when drawn.
  */
-class CommunityChestCard extends Card {
+public class CommunityChestCard extends Card {
 
     /**
      * Constructs a Community Chest card with the given description.

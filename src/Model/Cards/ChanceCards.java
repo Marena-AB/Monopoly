@@ -9,7 +9,7 @@ import Model.Spaces.JailSpace;
  * Represents a Chance card in the Monopoly game.
  * Each card has a specific effect when drawn.
  */
-class ChanceCard extends Card {
+public class ChanceCard extends Card {
 
     /**
      * Constructs a Chance card with the given description.
@@ -80,12 +80,12 @@ class ChanceCard extends Card {
             int totalPaid = 0;
             for (Player otherPlayer : gameState.getPlayers()) {
                 if (otherPlayer != player) {
-                    player.subtractMoney(50);
-                    otherPlayer.addMoney(50);
+                    otherPlayer.subtractMoney(50);
+                    player.addMoney(50);
                     totalPaid += 50;
                 }
             }
-            System.out.println(player.getName() + " paid $" + totalPaid + " to other players");
+            System.out.println(player.getName() + " collected $" + totalPaid + " from other players");
         }
         else if (description.contains("general repairs")) {
             int houses = 0;

@@ -398,4 +398,17 @@ public class GameState {
             isInJail.put(player, false);
         }
     }
+
+    /**
+     * Returns a "Get Out of Jail Free" card to the appropriate deck.
+     *
+     * @param cardType The type of card ("Chance" or "Community Chest")
+     */
+    public void returnGetOutOfJailFreeCard(String cardType) {
+        if (cardType.equals("Chance")) {
+            chanceCards.returnGetOutOfJailFreeCard();
+        } else if (cardType.equals("Community Chest")) {
+            communityChestCards.returnGetOutOfJailFreeCard();
+        }
+    }
 }
