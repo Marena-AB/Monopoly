@@ -4,7 +4,9 @@ import Model.Board.Bank;
 import Model.Board.Dice;
 import Model.Board.Gameboard;
 import Model.Board.Player;
+import Model.Cards.ChanceCard;
 import Model.Cards.ChanceCards;
+import Model.Cards.CommunityChestCard;
 import Model.Cards.CommunityChestCards;
 import Model.Property.Property;
 import Model.Spaces.Space;
@@ -45,10 +47,6 @@ public class GameState {
         }
         this.gameActive = true;
         this.currentPlayerIndex = 0;
-
-        // Initialize card decks
-        communityChestCards.cards();
-        chanceCards.cards();
     }
 
     /**
@@ -150,7 +148,9 @@ public class GameState {
      * @return The drawn chance card text
      */
     public String drawChanceCard() {
-        return ChanceCards.shuffleCards();
+        ChanceCard card = chanceCards.drawCard();
+        card.executeEffect(getCurrentPlayer(), this);
+        return card.getDescription();
     }
 
     /**
@@ -160,7 +160,9 @@ public class GameState {
      * @return The drawn community chest card text
      */
     public String drawCommunityChestCard() {
-        return CommunityChestCards.shuffleCards();
+        CommunityChestCard card = communityChestCards.drawCard();
+        card.executeEffect(getCurrentPlayer(), this);
+        return card.getDescription();
     }
 
     /**

@@ -1,100 +1,219 @@
 package Model.Cards;
 
 import Model.Board.Player;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.List;
-import java.util.ArrayList;
+import Model.GameState;
+import Model.Spaces.GoSpace;
+import Model.Spaces.JailSpace;
 
 /**
- * @author Team 4
- * This class represents the Chance Cards in the game of Monopoly.
- * It implements the Model.ChestAndCardSpot interface.
- * The class has a Map of Chance Cards. And is responsible for shuffling the cards.
+ * Represents a Chance card in the Monopoly game.
+ * Each card has a specific effect when drawn.
  */
-public class ChanceCards {
-    /**
-     * Author: Marena Abboud
-     * This is a map of the Chance Cards.
-     * The key is the card name and the value is the card description.
-     */
-    private static Map<String, String> chanceCards = new HashMap<>();
+class ChanceCard extends Card {
 
     /**
-     *  Author: Marena Abboud
-     * This is the constructor for the Model.Cards.ChanceCards class.
-     * It initializes the chanceCards map.
+     * Constructs a Chance card with the given description.
+     *
+     * @param description The text of the card
      */
-    public ChanceCards() {
-        // Ensure cards are initialized when the class is instantiated
-        if (chanceCards.isEmpty()) {
-            cards();
+    public ChanceCard(String description) {
+        super(description);
+    }
+
+    /**
+     * Gets the card type.
+     *
+     * @return "Chance"
+     */
+    @Override
+    public String getCardType() {
+        return "Chance";
+    }
+
+    /**
+     * Gets the deck name.
+     *
+     * @return "Chance Deck"
+     */
+    @Override
+    public String getDeck() {
+        return "Chance Deck";
+    }
+
+    /**
+     * Executes the effect of the Chance card based on its description.
+     *
+     * @param player The player who drew the card
+     * @param gameState The current game state
+     */
+    @Override
+    public void executeEffect(Player player, GameState gameState) {
+        System.out.println(player.getName() + " drew Chance card: " + description);
+
+        if (description.contains("Advance to Go")) {
+            GoSpace.moveToGo(player, gameState);
+        }
+        else if (description.contains("Go to Jail")) {
+            JailSpace.goToJail(player, gameState);
+        }
+        else if (description.contains("Get Out of Jail Free")) {
+            player.setHasGetOutOfJailFreeCard(true);
+            System.out.println(player.getName() + " received a Get Out of Jail Free card");
+        }
+        else if (description.contains("dividend of $50")) {
+            player.addMoney(50);
+            System.out.println(player.getName() + " received $50 from the bank");
+        }
+        else if (description.contains("Speeding fine")) {
+            player.subtractMoney(15);
+            System.out.println(player.getName() + " paid a $15 fine");
+        }
+        else if (description.contains("building loan")) {
+            player.addMoney(150);
+            System.out.println(player.getName() + " received $150 from the bank");
+        }
+        else if (description.contains("crossword competition")) {
+            player.addMoney(100);
+            System.out.println(player.getName() + " received $100 from the bank");
+        }
+        else if (description.contains("Chairman of the Board")) {
+            int totalPaid = 0;
+            for (Player otherPlayer : gameState.getPlayers()) {
+                if (otherPlayer != player) {
+                    player.subtractMoney(50);
+                    otherPlayer.addMoney(50);
+                    totalPaid += 50;
+                }
+            }
+            System.out.println(player.getName() + " paid $" + totalPaid + " to other players");
+        }
+        else if (description.contains("general repairs")) {
+            int houses = 0;
+            int hotels = 0;
+
+            for (Model.Property.Property property : player.getProperties()) {
+                if (property.hasHotel()) {
+                    hotels++;
+                } else {
+                    houses += property.getHouses();
+                }
+            }
+
+            int totalCost = (houses * 25) + (hotels * 100);
+            player.subtractMoney(totalCost);
+            System.out.println(player.getName() + " paid $" + totalCost + " for repairs");
+        }
+        else if (description.contains("Illinois Avenue")) {
+            movePlayerToNamedLocation(player, "Illinois Avenue", gameState);
+        }
+        else if (description.contains("St. Charles Place")) {
+            movePlayerToNamedLocation(player, "St. Charles Place", gameState);
+        }
+        else if (description.contains("Reading Railroad")) {
+            movePlayerToNamedLocation(player, "Reading Railroad", gameState);
+        }
+        else if (description.contains("Boardwalk")) {
+            movePlayerToNamedLocation(player, "Boardwalk", gameState);
+        }
+        else if (description.contains("nearest Railroad")) {
+            movePlayerToNearestType(player, "Railroad", gameState);
+        }
+        else if (description.contains("nearest Utility")) {
+            movePlayerToNearestType(player, "Utility", gameState);
+        }
+        else if (description.contains("Go Back 3 Spaces")) {
+            int currentPosition = player.getPosition();
+            int newPosition = (currentPosition - 3 + gameState.getBoard().getSpaces().size()) % gameState.getBoard().getSpaces().size();
+            player.setPosition(newPosition);
+            System.out.println(player.getName() + " moved back 3 spaces to " +
+                    gameState.getBoard().getspace(newPosition).getName());
+            player.performTurnActions(gameState);
         }
     }
 
     /**
-     * Author: Marena Abboud
-     * This method is used to shuffle the cards.
+     * Helper method to move a player to a named location on the board.
+     *
+     * @param player The player to move
+     * @param locationName The name of the location to move to
+     * @param gameState The current game state
      */
-    public Map<String, String> getChanceCards() {
-        return chanceCards;
+    private void movePlayerToNamedLocation(Player player, String locationName, GameState gameState) {
+        int currentPosition = player.getPosition();
+        int destinationPosition = -1;
+
+        // Find the position of the named location
+        for (int i = 0; i < gameState.getBoard().getSpaces().size(); i++) {
+            if (gameState.getBoard().getspace(i).getName().equals(locationName)) {
+                destinationPosition = i;
+                break;
+            }
+        }
+
+        if (destinationPosition != -1) {
+            // Check if player passes Go
+            boolean passedGo = destinationPosition < currentPosition && currentPosition != 0;
+
+            // Move player
+            player.setPosition(destinationPosition);
+            System.out.println(player.getName() + " moved to " + locationName);
+
+            // Handle passing Go
+            if (passedGo) {
+                System.out.println(player.getName() + " passed Go and collects $200");
+                player.addMoney(200);
+            }
+
+            // Handle actions for the new space
+            player.performTurnActions(gameState);
+        } else {
+            System.out.println("Could not find location: " + locationName);
+        }
     }
 
     /**
-     * Author: Tati Curtis
-     * This method is used to set the chanceCards map.
-     * @param chanceCards The chanceCards map to set.
+     * Helper method to move a player to the nearest location of a specific type.
+     *
+     * @param player The player to move
+     * @param locationType The type of location to move to ("Railroad" or "Utility")
+     * @param gameState The current game state
      */
-    public void setChanceCards(Map<String, String> chanceCards) {
-        ChanceCards.chanceCards = chanceCards;
-    }
+    private void movePlayerToNearestType(Player player, String locationType, GameState gameState) {
+        int currentPosition = player.getPosition();
+        int boardSize = gameState.getBoard().getSpaces().size();
+        int closestPosition = -1;
+        int closestDistance = boardSize; // Maximum possible distance
 
-    /**
-     * Author: Marena Abboud
-     * This method is used to create the chance cards.
-     * It initializes the chanceCards map with the card name and description.
-     * @see ChanceCards
-     */
-    public void cards() {
-        chanceCards.put("Card1", "Take a ride on the Reading Railroad. If you pass Go, collect $200.");
-        chanceCards.put("Card2", "Advance Token to Nearest Railroad and Pay Owner Twice the Rental to Which He is Otherwise Entitled. If Railroad is Unowned, You May Buy it from the Bank.");
-        chanceCards.put("Card3", "Go Back 3 Spaces.");
-        chanceCards.put("Card4", "Advance to Go (Collect $200).");
-        chanceCards.put("Card5", "Bank pays you dividend of $50.");
-        chanceCards.put("Card6", "Advance to Illinois Ave.");
-        chanceCards.put("Card7", "Make General Repairs on All Your Property. For each house pay $25. For each hotel $100.");
-        chanceCards.put("Card8", "This Card May Be Kept Until Needed or Sold. Get Out of Jail Free.");
-        chanceCards.put("Card9", "Take A Walk on the Boardwalk. Advance token to Boardwalk.");
-        chanceCards.put("Card10", "Pay Poor Tax of $15.");
-        chanceCards.put("Card11", "Advance Token to the Nearest Railroad and Pay Owner Twice the Rental to Which He is Otherwise Entitled. If Railroad is Unowned, You May Buy it from the Bank.");
-        chanceCards.put("Card12", "Go Directly to Jail. Do Not Pass Go, Do Not Collect $200.");
-        chanceCards.put("Card13", "You Have Been Elected Chairman of the Board. Pay Each Player $50.");
-        chanceCards.put("Card14", "Advance To St. Charles Place. If you pass Go, collect $200.");
-        chanceCards.put("Card15", "Your Building Loan Matures. Collect $150.");
-        chanceCards.put("Card16", "Advance Token to Nearest Railroad and Pay Owner Twice the Rental to Which He is Otherwise Entitled. If Railroad is Unowned, You May Buy it from the Bank.");
-    }
+        // Find the nearest location of specified type
+        for (int i = 0; i < boardSize; i++) {
+            if (gameState.getBoard().getspace(i).getType().contains(locationType)) {
+                // Calculate distance (going forward around the board)
+                int distance = (i - currentPosition + boardSize) % boardSize;
+                if (distance > 0 && distance < closestDistance) {
+                    closestDistance = distance;
+                    closestPosition = i;
+                }
+            }
+        }
 
-    /**
-     * Author: Marena Abboud
-     * Edited by: Aiden Clare
-     * This method is used to shuffle the cards.
-     * It returns a random card from the chanceCards map.
-     * @return A random card from the chanceCards map.
-     */
-    public static String shuffleCards() {
-        Random rand = new Random();
-        List<String> cards = new ArrayList<>(chanceCards.keySet());
-        String randomCard = cards.get(rand.nextInt(cards.size()));
+        if (closestPosition != -1) {
+            // Check if player passes Go
+            boolean passedGo = (currentPosition + closestDistance) > boardSize;
 
-        return chanceCards.get(randomCard);
-    }
+            // Move player
+            player.setPosition(closestPosition);
+            System.out.println(player.getName() + " moved to " + gameState.getBoard().getspace(closestPosition).getName());
 
-    /**
-     * Author: Aiden Clare
-     * This method is used to draw a card from the chanceCards map.
-     */
-    public static void drawCard(Model.Board.Player player1) {
-        System.out.println("Player " + player1.getName() + " drew a Chance card: " + shuffleCards());
+            // Handle passing Go
+            if (passedGo) {
+                System.out.println(player.getName() + " passed Go and collects $200");
+                player.addMoney(200);
+            }
+
+            // Handle actions for the new space
+            player.performTurnActions(gameState);
+        } else {
+            System.out.println("Could not find nearest " + locationType);
+        }
     }
 }

@@ -1,102 +1,135 @@
 package Model.Cards;
 
 import Model.Board.Player;
-import java.util.*;
+import Model.GameState;
+import Model.Spaces.GoSpace;
+import Model.Spaces.JailSpace;
 
 /**
- * This class represents the Community Chest Cards for the Monopoly game.
- * It implements the Model.ChestAndCardSpot interface.
- * The class has a map of the cards and a randomizer to shuffle the cards.
+ * Represents a Community Chest card in the Monopoly game.
+ * Each card has a specific effect when drawn.
  */
-public class CommunityChestCards {
-    /**
-     * Author: Ronnie
-     * Edited by Tati Curtis
-     * This is a map of the Community Chest Cards.
-     * The key is the card name and the value is the card description.
-     */
-    private static Map<String, String> communityChestCards = new HashMap<>();
+class CommunityChestCard extends Card {
 
     /**
-     * Author: Ronnie
-     * Edited by Tati Curtis
-     * This is the constructor for the Model.Cards.CommunityChestCards class.
-     * It initializes the communityChestCards map.
+     * Constructs a Community Chest card with the given description.
+     *
+     * @param description The text of the card
      */
-    public CommunityChestCards() {
-        // Ensure cards are initialized when the class is instantiated
-        if (communityChestCards.isEmpty()) {
-            cards();
+    public CommunityChestCard(String description) {
+        super(description);
+    }
+
+    /**
+     * Gets the card type.
+     *
+     * @return "Community Chest"
+     */
+    @Override
+    public String getCardType() {
+        return "Community Chest";
+    }
+
+    /**
+     * Gets the deck name.
+     *
+     * @return "Community Chest Deck"
+     */
+    @Override
+    public String getDeck() {
+        return "Community Chest Deck";
+    }
+
+    /**
+     * Executes the effect of the Community Chest card based on its description.
+     *
+     * @param player The player who drew the card
+     * @param gameState The current game state
+     */
+    @Override
+    public void executeEffect(Player player, GameState gameState) {
+        System.out.println(player.getName() + " drew Community Chest card: " + description);
+
+        if (description.contains("Advance to Go")) {
+            GoSpace.moveToGo(player, gameState);
         }
-    }
+        else if (description.contains("Go to Jail")) {
+            JailSpace.goToJail(player, gameState);
+        }
+        else if (description.contains("Get Out of Jail Free")) {
+            player.setHasGetOutOfJailFreeCard(true);
+            System.out.println(player.getName() + " received a Get Out of Jail Free card");
+        }
+        else if (description.contains("Bank error in your favor")) {
+            player.addMoney(200);
+            System.out.println(player.getName() + " received $200 from the bank");
+        }
+        else if (description.contains("Doctor's fee")) {
+            player.subtractMoney(50);
+            System.out.println(player.getName() + " paid $50 doctor's fee");
+        }
+        else if (description.contains("From sale of stock")) {
+            player.addMoney(50);
+            System.out.println(player.getName() + " received $50 from stock sale");
+        }
+        else if (description.contains("Holiday fund")) {
+            player.addMoney(100);
+            System.out.println(player.getName() + " received $100 from holiday fund");
+        }
+        else if (description.contains("Income tax refund")) {
+            player.addMoney(20);
+            System.out.println(player.getName() + " received $20 tax refund");
+        }
+        else if (description.contains("your birthday")) {
+            int totalCollected = 0;
+            for (Player otherPlayer : gameState.getPlayers()) {
+                if (otherPlayer != player) {
+                    otherPlayer.subtractMoney(10);
+                    totalCollected += 10;
+                }
+            }
+            player.addMoney(totalCollected);
+            System.out.println(player.getName() + " collected $" + totalCollected + " for their birthday");
+        }
+        else if (description.contains("Life insurance")) {
+            player.addMoney(100);
+            System.out.println(player.getName() + " received $100 from life insurance");
+        }
+        else if (description.contains("Pay hospital")) {
+            player.subtractMoney(100);
+            System.out.println(player.getName() + " paid $100 hospital fees");
+        }
+        else if (description.contains("Pay school")) {
+            player.subtractMoney(50);
+            System.out.println(player.getName() + " paid $50 school fees");
+        }
+        else if (description.contains("consultancy fee")) {
+            player.addMoney(25);
+            System.out.println(player.getName() + " received $25 consultancy fee");
+        }
+        else if (description.contains("street repairs")) {
+            int houses = 0;
+            int hotels = 0;
 
-    /**
-     * Author: Aiden Clare
-     * This method is used to shuffle the cards.
-     * @param player1 The player drawing the card
-     */
-    public static void drawCard(Model.Board.Player player1) {
-        System.out.println("Player " + player1.getName() + " drew a Community Chest card: " + shuffleCards());
-    }
+            for (Model.Property.Property property : player.getProperties()) {
+                if (property.hasHotel()) {
+                    hotels++;
+                } else {
+                    houses += property.getHouses();
+                }
+            }
 
-    /**
-     * Author: Ronnie
-     * Edited by Tati Curtis
-     * This method is used to get the communityChestCards map.
-     * @return The map of Community Chest cards
-     */
-    public Map<String, String> getCommunityChestCards() {
-        return communityChestCards;
-    }
-
-    /**
-     * Author: Ronnie
-     * Edited by Tati Curtis
-     * This method is used to set the communityChestCards map.
-     * @param communityChestCards The map to set
-     */
-    public void setCommunityChestCards(Map<String, String> communityChestCards) {
-        CommunityChestCards.communityChestCards = communityChestCards;
-    }
-
-    /**
-     * Author: Ronnie
-     * Edited by Tati Curtis
-     * This method is used to create the community chest cards.
-     * It initializes the communityChestCards map with the card name and description.
-     * @see CommunityChestCards
-     */
-    public void cards() {
-        communityChestCards.put("Card1", "Advance to Go (Collect $200).");
-        communityChestCards.put("Card2", "Bank error in your favor. Collect $200.");
-        communityChestCards.put("Card3", "Doctor's fees. Pay $50.");
-        communityChestCards.put("Card4", "From sale of stock you get $50.");
-        communityChestCards.put("Card5", "Get out of Jail Free.");
-        communityChestCards.put("Card6", "Go to Jail. Go directly to Jail. Do not pass Go. Do not collect $200.");
-        communityChestCards.put("Card7", "Holiday Fund matures. Receive $100.");
-        communityChestCards.put("Card8", "Income tax refund. Collect $20.");
-        communityChestCards.put("Card9", "It is your birthday. Collect $10 from each player.");
-        communityChestCards.put("Card10", "Life insurance matures. Collect $100.");
-        communityChestCards.put("Card11", "Pay hospital fees of $100.");
-        communityChestCards.put("Card12", "Pay school fees of $50.");
-        communityChestCards.put("Card13", "Receive $25 consultancy fee.");
-        communityChestCards.put("Card14", "You are assessed for street repairs. $40 per house. $115 per hotel.");
-        communityChestCards.put("Card15", "You have won second prize in a beauty contest. Collect $10.");
-        communityChestCards.put("Card16", "You inherit $100.");
-    }
-
-    /**
-     * Author: Ronnie
-     * Edited by Tati Curtis & Ronnie
-     * This method is used to shuffle the cards.
-     * It returns a random card from the communityChestCards map.
-     * @return A random card description
-     */
-    public static String shuffleCards() {
-        Random rand = new Random();
-        List<String> cards = new ArrayList<>(communityChestCards.keySet());
-        String randomCard = cards.get(rand.nextInt(cards.size()));
-
-        return communityChestCards.get(randomCard);
+            int totalCost = (houses * 40) + (hotels * 115);
+            player.subtractMoney(totalCost);
+            System.out.println(player.getName() + " paid $" + totalCost + " for street repairs");
+        }
+        else if (description.contains("beauty contest")) {
+            player.addMoney(10);
+            System.out.println(player.getName() + " received $10 from beauty contest");
+        }
+        else if (description.contains("inherit")) {
+            player.addMoney(100);
+            System.out.println(player.getName() + " inherited $100");
+        }
     }
 }
