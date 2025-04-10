@@ -56,8 +56,7 @@ public class GUI extends JFrame {
     private JButton rollForJailButton;
 
     // Current state tracking
-    private int[] lastDiceRoll = {0, 0};
-    private String lastDrawnCard = "";
+    private final int[] lastDiceRoll = {0, 0};
     private String lastCardType = "";
 
     // Constants
@@ -243,7 +242,7 @@ public class GUI extends JFrame {
         actionPanel = createActionPanel();
 
         // Create dice display panel
-        dicePanel = createDicePanel();
+        dicePanel = createSimpleDiePanel(0);
 
         // Create card display panel
         cardDisplayPanel = createCardDisplayPanel();
@@ -338,15 +337,39 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Creates the dice display panel
+     * Creates a simpler visual representation of a die
      */
-    private JPanel createDicePanel() {
-        JPanel panel = new JPanel();
-        panel.setBorder(new TitledBorder("Dice"));
-        panel.setPreferredSize(new Dimension(300, 100));
+    private JPanel createSimpleDiePanel(int value) {
+        JPanel diePanel = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(60, 60);
+            }
 
-        // Will be populated in updateDiceDisplay method
-        return panel;
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+
+                // Draw white square with black border
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+
+                // Draw value as text in center
+                g2d.setFont(new Font("Arial", Font.BOLD, 24));
+                String valueText = String.valueOf(value);
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(valueText);
+                int textHeight = fm.getHeight();
+                g2d.drawString(valueText,
+                        (getWidth() - textWidth) / 2,
+                        (getHeight() + textHeight) / 2 - fm.getDescent());
+            }
+        };
+
+        return diePanel;
     }
 
     /**
@@ -498,39 +521,61 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Updates the dice display
+     * Updates the dice display with a simpler approach
      */
     private void updateDiceDisplay() {
         dicePanel.removeAll();
+        dicePanel.setLayout(new BorderLayout());
 
         if (lastDiceRoll[0] > 0 || lastDiceRoll[1] > 0) {
-            // Create dice display
-            JPanel die1Panel = createDiePanel(lastDiceRoll[0]);
-            JPanel die2Panel = createDiePanel(lastDiceRoll[1]);
+            // Create main container
+            JPanel container = new JPanel();
+            container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 
-            // Add total
-            JLabel totalLabel = new JLabel("Total: " + (lastDiceRoll[0] + lastDiceRoll[1]));
-            totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            // Add title
+            JLabel titleLabel = new JLabel("Dice Roll", JLabel.CENTER);
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            container.add(titleLabel);
+            container.add(Box.createVerticalStrut(10));
+
+            // Create dice container
+            JPanel diceContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+
+            // Create dice panels
+            JPanel die1 = createSimpleDiePanel(lastDiceRoll[0]);
+            JPanel die2 = createSimpleDiePanel(lastDiceRoll[1]);
+
+            // Add dice to container
+            diceContainer.add(die1);
+            diceContainer.add(die2);
+
+            // Center the dice container
+            diceContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+            container.add(diceContainer);
+            container.add(Box.createVerticalStrut(10));
+
+            // Add result label
+            int total = lastDiceRoll[0] + lastDiceRoll[1];
+            JLabel resultLabel = new JLabel("Die 1: " + lastDiceRoll[0] + " + Die 2: " + lastDiceRoll[1] + " = Total: " + total, JLabel.CENTER);
+            resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            container.add(resultLabel);
 
             // Add doubles indicator if applicable
             if (lastDiceRoll[0] == lastDiceRoll[1]) {
-                JLabel doublesLabel = new JLabel("DOUBLES!");
+                JLabel doublesLabel = new JLabel("DOUBLES!", JLabel.CENTER);
                 doublesLabel.setForeground(Color.RED);
                 doublesLabel.setFont(new Font("Arial", Font.BOLD, 14));
-                dicePanel.add(doublesLabel);
+                doublesLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                container.add(doublesLabel);
             }
 
-            // Layout
-            JPanel diceContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            diceContainer.add(die1Panel);
-            diceContainer.add(die2Panel);
-
-            dicePanel.setLayout(new BorderLayout());
-            dicePanel.add(diceContainer, BorderLayout.CENTER);
-            dicePanel.add(totalLabel, BorderLayout.SOUTH);
+            // Add to panel
+            dicePanel.add(container, BorderLayout.CENTER);
         } else {
-            // No dice have been rolled yet
-            dicePanel.add(new JLabel("Roll dice to start your turn"));
+            // No dice rolled yet
+            JLabel noRollLabel = new JLabel("Roll dice to start your turn", JLabel.CENTER);
+            dicePanel.add(noRollLabel, BorderLayout.CENTER);
         }
 
         dicePanel.revalidate();
@@ -538,75 +583,89 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Creates a visual representation of a die
+     * Creates a visual representation of a die with the specified value
      */
     private JPanel createDiePanel(int value) {
         JPanel diePanel = new JPanel() {
             @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(60, 60);
+            }
+
+            @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Draw die face
+                // Draw die face (white rounded square with black border)
                 g2d.setColor(Color.WHITE);
-                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 10, 10);
                 g2d.setColor(Color.BLACK);
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 10, 10);
 
                 // Draw dots based on value
                 g2d.setColor(Color.BLACK);
-                int dotSize = getWidth() / 5;
-                int centerX = getWidth() / 2 - dotSize / 2;
-                int centerY = getHeight() / 2 - dotSize / 2;
+                int dotSize = getWidth() / 6;  // Slightly smaller dots
+
+                // Calculate positions
+                int margin = getWidth() / 6;
+                int center = getWidth() / 2 - dotSize / 2;
+                int left = margin - dotSize / 2;
+                int right = getWidth() - margin - dotSize / 2;
+                int top = margin - dotSize / 2;
+                int bottom = getHeight() - margin - dotSize / 2;
 
                 switch (value) {
                     case 1:
                         // Center dot
-                        g2d.fillOval(centerX, centerY, dotSize, dotSize);
+                        g2d.fillOval(center, center, dotSize, dotSize);
                         break;
                     case 2:
                         // Top-left and bottom-right
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
+                        g2d.fillOval(left, top, dotSize, dotSize);
+                        g2d.fillOval(right, bottom, dotSize, dotSize);
                         break;
                     case 3:
-                        // Same as 2 plus center
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(centerX, centerY, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
+                        // Top-left, center, and bottom-right
+                        g2d.fillOval(left, top, dotSize, dotSize);
+                        g2d.fillOval(center, center, dotSize, dotSize);
+                        g2d.fillOval(right, bottom, dotSize, dotSize);
                         break;
                     case 4:
-                        // All four corners
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
+                        // Four corners
+                        g2d.fillOval(left, top, dotSize, dotSize);
+                        g2d.fillOval(right, top, dotSize, dotSize);
+                        g2d.fillOval(left, bottom, dotSize, dotSize);
+                        g2d.fillOval(right, bottom, dotSize, dotSize);
                         break;
                     case 5:
-                        // Same as 4 plus center
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(centerX, centerY, dotSize, dotSize);
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
+                        // Four corners plus center
+                        g2d.fillOval(left, top, dotSize, dotSize);
+                        g2d.fillOval(right, top, dotSize, dotSize);
+                        g2d.fillOval(center, center, dotSize, dotSize);
+                        g2d.fillOval(left, bottom, dotSize, dotSize);
+                        g2d.fillOval(right, bottom, dotSize, dotSize);
                         break;
                     case 6:
-                        // Two rows of three dots
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(getWidth() / 2 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(getWidth() / 2 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
-                        g2d.fillOval(3 * getWidth() / 4 - dotSize / 2, 3 * getHeight() / 4 - dotSize / 2, dotSize, dotSize);
+                        // Six dots (three on each side)
+                        g2d.fillOval(left, top, dotSize, dotSize);
+                        g2d.fillOval(left, center, dotSize, dotSize);
+                        g2d.fillOval(left, bottom, dotSize, dotSize);
+                        g2d.fillOval(right, top, dotSize, dotSize);
+                        g2d.fillOval(right, center, dotSize, dotSize);
+                        g2d.fillOval(right, bottom, dotSize, dotSize);
                         break;
                 }
             }
-
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(60, 60);
-            }
         };
+
+        // Set background too transparent to better show the die face
+        diePanel.setOpaque(false);
+
+        // Add a subtle border to the panel itself
+        diePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         return diePanel;
     }
@@ -617,6 +676,7 @@ public class GUI extends JFrame {
     private void updateCardDisplay() {
         cardDisplayPanel.removeAll();
 
+        String lastDrawnCard = "";
         if (lastDrawnCard != null && !lastDrawnCard.isEmpty()) {
             // Show card type
             JLabel typeLabel = new JLabel(lastCardType + " Card:");
@@ -644,7 +704,7 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Handles rolling dice for the current player
+     * Handles rolling dice without animation
      */
     private void handleRollDice() {
         // Roll two dice
@@ -675,6 +735,36 @@ public class GUI extends JFrame {
         updatePlayerInfo();
         updateActionButtons();
         boardPanel.repaint();
+    }
+
+    /**
+     * Shows a die roll animation effect
+     */
+    private void showDiceRollAnimation(final int finalDie1, final int finalDie2) {
+        // Create timer for animation (rolls dice quickly several times)
+        final int animationFrames = 10; // Number of animation frames
+        final int delay = 50; // Milliseconds between frames
+
+        final Timer timer = new Timer(delay, null);
+        final int[] frameCount = {0};
+
+        timer.addActionListener(e -> {
+            if (frameCount[0] < animationFrames) {
+                // Show random dice during animation
+                lastDiceRoll[0] = (int) (Math.random() * 6) + 1;
+                lastDiceRoll[1] = (int) (Math.random() * 6) + 1;
+                updateDiceDisplay();
+                frameCount[0]++;
+            } else {
+                // Show final dice values
+                lastDiceRoll[0] = finalDie1;
+                lastDiceRoll[1] = finalDie2;
+                updateDiceDisplay();
+                timer.stop();
+            }
+        });
+
+        timer.start();
     }
 
     /**
@@ -1981,9 +2071,7 @@ public class GUI extends JFrame {
      */
     public static void main(String[] args) {
         // Launch the GUI on the event dispatch thread
-        SwingUtilities.invokeLater(() -> {
-            new GUI();
-        });
+        SwingUtilities.invokeLater(GUI::new);
     }
 }
 
