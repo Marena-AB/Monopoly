@@ -10,10 +10,13 @@ import Model.Spaces.RailroadSpace;
 import Model.Spaces.Space;
 import Model.Spaces.UtilitySpace;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1205,14 +1208,27 @@ public class GUI extends JFrame {
                 new Color(0, 102, 153)     // Railroads/Utilities - Blue
         };
 
-        /**
-         * Constructs a new BoardPanel
-         */
+       // Image fields
+        private Image houseImage;
+        private Image hotelImage;
+
+        // In the BoardPanel constructor:
         public BoardPanel() {
             setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
             setMinimumSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
-            setBackground(new Color(217, 238, 217)); // Light green background
+            setBackground(new Color(217, 238, 217));
             setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+            // Load house and hotel images
+            try {
+                houseImage = ImageIO.read(new File("path/to/houses.jpg")).getScaledInstance(15, 15, Image.SCALE_SMOOTH);
+                hotelImage = ImageIO.read(new File("path/to/hotel.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Fallback to drawing if images can't be loaded
+                houseImage = null;
+                hotelImage = null;
+            }
         }
 
         @Override
@@ -1268,6 +1284,7 @@ public class GUI extends JFrame {
             }
         }
 
+
         /**
          * Draws the corner spaces (GO, Jail, Free Parking, Go To Jail)
          */
@@ -1308,6 +1325,39 @@ public class GUI extends JFrame {
             g2d.drawString("GO TO", BOARD_SIZE - SPACE_SIZE + 10, 20);
             g2d.drawString("JAIL", BOARD_SIZE - SPACE_SIZE + 15, 40);
         }
+        private void drawHouses(Graphics2D g2d, Property property, int x, int y, int spaceWidth, int spaceHeight) {
+            if (property.getHouses() == 0) return;
+
+            int houseCount = property.getHouses();
+            boolean isHotel = houseCount == 5; // Assuming 5 houses = 1 hotel
+
+            if (isHotel) {
+                // Draw hotel
+                if (hotelImage != null) {
+                    g2d.drawImage(hotelImage, x + spaceWidth/2 - 10, y + spaceHeight - 30, null);
+                } else {
+                    // Fallback drawing
+                    g2d.setColor(Color.RED);
+                    g2d.fillRect(x + spaceWidth/2 - 10, y + spaceHeight - 30, 20, 20);
+                    g2d.setColor(Color.WHITE);
+                    g2d.drawString("H", x + spaceWidth/2 - 5, y + spaceHeight - 15);
+                }
+            } else {
+                // Draw houses
+                int houseSize = 15;
+                int startX = x + (spaceWidth - (houseCount * houseSize)) / 2;
+
+                for (int i = 0; i < houseCount; i++) {
+                    if (houseImage != null) {
+                        g2d.drawImage(houseImage, startX + i * houseSize, y + spaceHeight - 30, null);
+                    } else {
+                        // Fallback drawing
+                        g2d.setColor(Color.GREEN);
+                        g2d.fillRect(startX + i * houseSize, y + spaceHeight - 30, houseSize-2, houseSize-2);
+                    }
+                }
+            }
+        }
         /**
          * Draws the side spaces (properties, utilities, railroads, etc.) with improved text spacing
          */
@@ -1315,6 +1365,7 @@ public class GUI extends JFrame {
             // Set a thicker stroke for better visibility of space borders
             Stroke originalStroke = g2d.getStroke();
             g2d.setStroke(new BasicStroke(1.5f));
+
 
             // Create a smaller font for property names to avoid text overlap
             Font smallFont = new Font("Arial", Font.PLAIN, 6);
@@ -1375,6 +1426,13 @@ public class GUI extends JFrame {
                         g2d.setColor(Color.RED);
                         g2d.setFont(ownerFont);
                         drawCenteredString(g2d, "Owner: " + owner.getName(), x, y + SPACE_SIZE - 5, SPACE_SIZE);
+
+                        if (space instanceof Property) {
+                            Property property = (Property) space;
+                            if (property.isOwned()) {
+                                drawHouses(g2d, property, x, y - 15, SPACE_SIZE, SPACE_SIZE);
+                            }
+                        }
                     }
                 }
             }
@@ -1455,6 +1513,16 @@ public class GUI extends JFrame {
                         g2d.rotate(Math.PI/2, x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
                         g2d.drawString("Owner: " + owner.getName(), x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
                         g2d.rotate(-Math.PI/2, x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
+
+                        if (space instanceof Property) {
+                            Property property = (Property) space;
+                            if (property.isOwned()) {
+                                AffineTransform original = g2d.getTransform();
+                                g2d.rotate(Math.PI/2, x + SPACE_SIZE/2, y + SPACE_SIZE/2);
+                                drawHouses(g2d, property, x, y, SPACE_SIZE, SPACE_SIZE);
+                                g2d.setTransform(original);
+                            }
+                        }
                     }
                 }
             }
@@ -1516,6 +1584,15 @@ public class GUI extends JFrame {
                         g2d.rotate(Math.PI, x + SPACE_SIZE/2, y + 10);
                         drawCenteredString(g2d, "Owner: " + owner.getName(), x, y + 10, SPACE_SIZE);
                         g2d.rotate(-Math.PI, x + SPACE_SIZE/2, y + 10);
+                        if (space instanceof Property) {
+                            Property property = (Property) space;
+                            if (property.isOwned()) {
+                                AffineTransform original = g2d.getTransform();
+                                g2d.rotate(Math.PI, x + SPACE_SIZE/2, y + SPACE_SIZE/2);
+                                drawHouses(g2d, property, x, y, SPACE_SIZE, SPACE_SIZE);
+                                g2d.setTransform(original);
+                            }
+                        }
                     }
                 }
             }
@@ -1598,6 +1675,15 @@ public class GUI extends JFrame {
                         int ownerWidth = g2d.getFontMetrics().stringWidth(ownerText);
                         g2d.drawString(ownerText, x + 8 - ownerWidth/2, y + SPACE_SIZE/2);
                         g2d.rotate(Math.PI/2, x + 8, y + SPACE_SIZE/2);
+                        if (space instanceof Property) {
+                            Property property = (Property) space;
+                            if (property.isOwned()) {
+                                AffineTransform original = g2d.getTransform();
+                                g2d.rotate(-Math.PI/2, x + SPACE_SIZE/2, y + SPACE_SIZE/2);
+                                drawHouses(g2d, property, x, y, SPACE_SIZE, SPACE_SIZE);
+                                g2d.setTransform(original);
+                            }
+                        }
                     }
                 }
             }
