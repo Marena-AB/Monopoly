@@ -13,6 +13,7 @@ import Model.Spaces.UtilitySpace;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Monopoly Game GUI
+ * This class is responsible for the visual representation of the Monopoly game.
  */
 public class GUI extends JFrame {
     // Game components
@@ -61,8 +63,8 @@ public class GUI extends JFrame {
     // Constants
     private static final int WINDOW_WIDTH = 1200;
     private static final int WINDOW_HEIGHT = 800;
-    private static final int BOARD_SIZE = 700;
-    private static final int SPACE_SIZE = 60;
+    private static final int BOARD_SIZE = 600;
+    private static final int SPACE_SIZE = BOARD_SIZE / 11;
 
     /**
      * Constructor that initializes the GUI
@@ -85,6 +87,7 @@ public class GUI extends JFrame {
         // Update UI with initial game state
         updateUI();
 
+        // Make sure the frame is visible
         setVisible(true);
 
         // Initial log message
@@ -143,536 +146,6 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Updates the entire UI
-     */
-    private void updateUI() {
-        updatePlayerInfo();
-        updateActionButtons();
-        updateDiceDisplay();
-        updateCardDisplay();
-        boardPanel.repaint();
-    }
-
-    /**
-     * Logs a message to the game log
-     */
-    private void logMessage(String message) {
-        gameLog.append(message + "\n");
-        // Scroll to the bottom of the log
-        gameLog.setCaretPosition(gameLog.getDocument().getLength());
-    }
-
-    /**
-     * Handles rolling dice for the current player
-     */
-    private void handleRollDice() {
-        // Roll two dice
-        int die1 = (int) (Math.random() * 6) + 1;
-        int die2 = (int) (Math.random() * 6) + 1;
-        lastDiceRoll[0] = die1;
-        lastDiceRoll[1] = die2;
-
-        // Update dice display
-        updateDiceDisplay();
-
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        // Move player
-        int totalRoll = die1 + die2;
-        currentPlayer.move(totalRoll, board);
-
-        // Log the roll and movement
-        logMessage(currentPlayer.getName() + " rolled a " + die1 + " and a " + die2 +
-                " (Total: " + totalRoll + ")");
-        logMessage(currentPlayer.getName() + " moved to " +
-                board.getspace(currentPlayer.getPosition()).getName());
-
-        // Perform actions for the space landed on
-        currentPlayer.performTurnActions(gameState);
-
-        // Update UI components
-        updatePlayerInfo();
-        updateActionButtons();
-        boardPanel.repaint();
-    }
-
-    /**
-     * Handles buying a property
-     */
-    private void handleBuyProperty() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-        Space currentSpace = board.getspace(currentPlayer.getPosition());
-
-        try {
-            if (currentSpace instanceof Property) {
-                Property property = (Property) currentSpace;
-                currentPlayer.buyProperty(property);
-                logMessage(currentPlayer.getName() + " bought " + property.getName() + " for $" + property.getPrice());
-            } else if (currentSpace instanceof RailroadSpace) {
-                RailroadSpace railroad = (RailroadSpace) currentSpace;
-                currentPlayer.buyRailroad(railroad);
-                logMessage(currentPlayer.getName() + " bought " + railroad.getName() + " for $" + railroad.getPrice());
-            } else if (currentSpace instanceof UtilitySpace) {
-                UtilitySpace utility = (UtilitySpace) currentSpace;
-                currentPlayer.buyUtility(utility);
-                logMessage(currentPlayer.getName() + " bought " + utility.getName() + " for $" + utility.getPrice());
-            }
-
-            // Update UI
-            updatePlayerInfo();
-            updateActionButtons();
-            boardPanel.repaint();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Cannot Buy Property", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Handles starting an auction for a property
-     */
-    private void handleAuctionProperty() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-        Space currentSpace = board.getspace(currentPlayer.getPosition());
-
-        // Open auction dialog
-        AuctionDialog auctionDialog = new AuctionDialog(this, players, currentSpace);
-        auctionDialog.setVisible(true);
-
-        // Update UI after auction
-        updatePlayerInfo();
-        updateActionButtons();
-        boardPanel.repaint();
-    }
-
-    /**
-     * Handles building a house on a property
-     */
-    private void handleBuildHouse() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        // Get list of properties where player can build
-        List<Property> buildableProperties = currentPlayer.getProperties().stream()
-                .filter(p -> p.getColorGroup() != null &&
-                        board.playerOwnsAllInColorGroup(currentPlayer, p.getColorGroup()) &&
-                        p.getHouses() < 4)
-                .collect(Collectors.toList());
-
-        if (buildableProperties.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No properties available to build houses on.",
-                    "Build House", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // Show property selection dialog
-        Property selectedProperty = (Property) JOptionPane.showInputDialog(
-                this,
-                "Select a property to build a house on:",
-                "Build House",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                buildableProperties.toArray(),
-                buildableProperties.get(0)
-        );
-
-        if (selectedProperty != null) {
-            try {
-                bank.sellHouses(selectedProperty, currentPlayer, 1, board);
-                logMessage(currentPlayer.getName() + " built a house on " + selectedProperty.getName());
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-                boardPanel.repaint();
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(),
-                        "Cannot Build House", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    /**
-     * Handles mortgaging a property
-     */
-    private void handleMortgage() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        // Get list of properties that can be mortgaged
-        List<Property> mortgageableProperties = currentPlayer.getProperties().stream()
-                .filter(p -> !p.isMortgaged() && p.getHouses() == 0)
-                .collect(Collectors.toList());
-
-        if (mortgageableProperties.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No properties available to mortgage.",
-                    "Mortgage Property", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // Show property selection dialog
-        Property selectedProperty = (Property) JOptionPane.showInputDialog(
-                this,
-                "Select a property to mortgage:",
-                "Mortgage Property",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                mortgageableProperties.toArray(),
-                mortgageableProperties.get(0)
-        );
-
-        if (selectedProperty != null) {
-            try {
-                currentPlayer.mortgageProperty(selectedProperty);
-                logMessage(currentPlayer.getName() + " mortgaged " + selectedProperty.getName());
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-                boardPanel.repaint();
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(),
-                        "Cannot Mortgage", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    /**
-     * Handles unmortgaging a property
-     */
-    private void handleUnmortgage() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        // Get list of mortgaged properties
-        List<Property> mortgagedProperties = currentPlayer.getProperties().stream()
-                .filter(Property::isMortgaged)
-                .collect(Collectors.toList());
-
-        if (mortgagedProperties.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No mortgaged properties to unmortgage.",
-                    "Unmortgage Property", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // Show property selection dialog
-        Property selectedProperty = (Property) JOptionPane.showInputDialog(
-                this,
-                "Select a property to unmortgage:",
-                "Unmortgage Property",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                mortgagedProperties.toArray(),
-                mortgagedProperties.get(0)
-        );
-
-        if (selectedProperty != null) {
-            try {
-                currentPlayer.unmortgageProperty(selectedProperty);
-                logMessage(currentPlayer.getName() + " unmortgaged " + selectedProperty.getName());
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-                boardPanel.repaint();
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(),
-                        "Cannot Unmortgage", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    /**
-     * Handles ending the current player's turn
-     */
-    private void handleEndTurn() {
-        // Reset dice roll
-        lastDiceRoll[0] = 0;
-        lastDiceRoll[1] = 0;
-
-        // Move to next player
-        gameState.nextTurn();
-
-        // Update UI components
-        updatePlayerInfo();
-        updateDiceDisplay();
-        updateActionButtons();
-        updateCardDisplay();
-
-        // Log turn change
-        logMessage("Turn ended. Current player: " + gameState.getCurrentPlayer().getName());
-    }
-
-    /**
-     * Handles paying jail fee
-     */
-    private void handlePayJailFee() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        try {
-            // Only allow paying if player has enough money and is in jail
-            if (gameState.isPlayerInJail(currentPlayer) && currentPlayer.getMoney() >= 50) {
-                currentPlayer.subtractMoney(50);
-                gameState.releaseFromJail(currentPlayer);
-                logMessage(currentPlayer.getName() + " paid $50 to get out of jail");
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Cannot pay jail fee. Either not in jail or not enough money.",
-                        "Jail Fee Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(),
-                    "Cannot Pay Jail Fee", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Handles using a Get Out of Jail Free card
-     */
-    private void handleUseJailCard() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        try {
-            // Only allow using card if player is in jail and has a card
-            if (gameState.isPlayerInJail(currentPlayer) && currentPlayer.hasGetOutOfJailFreeCard()) {
-                gameState.releaseFromJail(currentPlayer);
-                currentPlayer.setHasGetOutOfJailFreeCard(false);
-                logMessage(currentPlayer.getName() + " used a Get Out of Jail Free card");
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Cannot use jail card. Either not in jail or no card available.",
-                        "Jail Card Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(),
-                    "Cannot Use Jail Card", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Handles rolling for jail release
-     */
-    private void handleRollForJail() {
-        Player currentPlayer = gameState.getCurrentPlayer();
-
-        // Only allow rolling if player is in jail
-        if (!gameState.isPlayerInJail(currentPlayer)) {
-            JOptionPane.showMessageDialog(this,
-                    "You are not in jail.",
-                    "Roll for Jail Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int die1 = (int) (Math.random() * 6) + 1;
-        int die2 = (int) (Math.random() * 6) + 1;
-
-        lastDiceRoll[0] = die1;
-        lastDiceRoll[1] = die2;
-
-        // Update dice display
-        updateDiceDisplay();
-
-        try {
-            if (die1 == die2) {
-                // Doubles, get out of jail
-                gameState.releaseFromJail(currentPlayer);
-                logMessage(currentPlayer.getName() + " rolled doubles and got out of jail!");
-
-                // Move player based on dice roll
-                currentPlayer.move(die1 + die2, board);
-                currentPlayer.performTurnActions(gameState);
-            } else {
-                // Increment turns in jail
-                currentPlayer.setTurnsInJail(currentPlayer.getTurnsInJail() + 1);
-                logMessage(currentPlayer.getName() + " did not roll doubles. Remaining in jail.");
-
-                // Check if player has been in jail for 3 turns
-                if (currentPlayer.getTurnsInJail() >= 3) {
-                    // Must pay $50 to get out after 3 turns
-                    if (currentPlayer.getMoney() >= 50) {
-                        currentPlayer.subtractMoney(50);
-                        gameState.releaseFromJail(currentPlayer);
-                        currentPlayer.move(die1 + die2, board);
-                        currentPlayer.performTurnActions(gameState);
-                        logMessage(currentPlayer.getName() + " paid $50 and got out of jail after 3 turns.");
-                    } else {
-                        logMessage(currentPlayer.getName() + " cannot pay $50 to get out of jail.");
-                    }
-                }
-            }
-
-            // Update UI
-            updatePlayerInfo();
-            updateActionButtons();
-            boardPanel.repaint();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(),
-                    "Jail Roll Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Inner class for Auction Dialog
-     */
-    private class AuctionDialog extends JDialog {
-        private List<Player> players;
-        private Space currentSpace;
-        private Map<Player, JTextField> bidFields;
-        private Player highestBidder;
-        private int highestBid;
-
-        public AuctionDialog(JFrame parent, List<Player> players, Space currentSpace) {
-            super(parent, "Property Auction", true);
-            this.players = players;
-            this.currentSpace = currentSpace;
-            this.bidFields = new HashMap<>();
-            this.highestBid = 0;
-            this.highestBidder = null;
-
-            initComponents();
-        }
-
-        private void initComponents() {
-            setLayout(new BorderLayout());
-
-            // Title panel
-            JPanel titlePanel = new JPanel();
-            titlePanel.add(new JLabel("Auction for " + currentSpace.getName()));
-            add(titlePanel, BorderLayout.NORTH);
-
-            // Bidding panel
-            JPanel biddingPanel = new JPanel(new GridLayout(0, 3, 5, 5));
-            biddingPanel.setBorder(BorderFactory.createTitledBorder("Players"));
-
-            biddingPanel.add(new JLabel("Player"));
-            biddingPanel.add(new JLabel("Bid Amount"));
-            biddingPanel.add(new JLabel("Actions"));
-
-            for (Player player : players) {
-                // Player name
-                biddingPanel.add(new JLabel(player.getName()));
-
-                // Bid field
-                JTextField bidField = new JTextField();
-                bidField.setEditable(true);
-                bidFields.put(player, bidField);
-                biddingPanel.add(bidField);
-
-                // Bid button
-                JButton bidButton = new JButton("Bid");
-                bidButton.addActionListener(e -> placeBid(player));
-                biddingPanel.add(bidButton);
-            }
-
-            add(new JScrollPane(biddingPanel), BorderLayout.CENTER);
-
-            // Auction control panel
-            JPanel controlPanel = new JPanel();
-            JButton finishAuctionButton = new JButton("Finish Auction");
-            finishAuctionButton.addActionListener(e -> finishAuction());
-            controlPanel.add(finishAuctionButton);
-
-            add(controlPanel, BorderLayout.SOUTH);
-
-            pack();
-            setLocationRelativeTo(getParent());
-        }
-
-        private void placeBid(Player player) {
-            JTextField bidField = bidFields.get(player);
-            try {
-                int bidAmount = Integer.parseInt(bidField.getText());
-
-                // Validate bid
-                if (bidAmount <= highestBid) {
-                    JOptionPane.showMessageDialog(this,
-                            "Bid must be higher than the current highest bid of $" + highestBid,
-                            "Invalid Bid",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (bidAmount > player.getMoney()) {
-                    JOptionPane.showMessageDialog(this,
-                            "You cannot bid more than your available money",
-                            "Invalid Bid",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Update highest bid
-                highestBid = bidAmount;
-                highestBidder = player;
-
-                // Highlight highest bid
-                bidFields.forEach((p, field) -> {
-                    field.setBackground(p == highestBidder ? Color.YELLOW : Color.WHITE);
-                });
-
-                logMessage(player.getName() + " bids $" + bidAmount);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Please enter a valid number",
-                        "Invalid Bid",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        private void finishAuction() {
-            if (highestBidder != null) {
-                // Sell property to highest bidder
-                if (currentSpace instanceof Property) {
-                    Property property = (Property) currentSpace;
-                    property.setOwner(highestBidder);
-                    highestBidder.subtractMoney(highestBid);
-                    highestBidder.getProperties().add(property);
-
-                    logMessage(highestBidder.getName() + " won the auction for " +
-                            property.getName() + " at $" + highestBid);
-                } else if (currentSpace instanceof RailroadSpace) {
-                    RailroadSpace railroad = (RailroadSpace) currentSpace;
-                    railroad.setOwner(highestBidder);
-                    highestBidder.subtractMoney(highestBid);
-
-                    logMessage(highestBidder.getName() + " won the auction for " +
-                            railroad.getName() + " at $" + highestBid);
-                } else if (currentSpace instanceof UtilitySpace) {
-                    UtilitySpace utility = (UtilitySpace) currentSpace;
-                    utility.setOwner(highestBidder);
-                    highestBidder.subtractMoney(highestBid);
-
-                    logMessage(highestBidder.getName() + " won the auction for " +
-                            utility.getName() + " at $" + highestBid);
-                }
-
-                // Update UI
-                updatePlayerInfo();
-                updateActionButtons();
-                boardPanel.repaint();
-            } else {
-                logMessage("No one bid on the property.");
-            }
-
-            dispose(); // Close the auction dialog
-        }
-
-        private void logMessage(String message) {
-            // In this context, append to game log
-            gameLog.append(message + "\n");
-            gameLog.setCaretPosition(gameLog.getDocument().getLength());
-        }
-    }
-
-    // Add these methods that were likely missing from your original implementation
-
-    /**
      * Prompts for the number of players
      */
     private int promptNumberOfPlayers() {
@@ -705,6 +178,189 @@ public class GUI extends JFrame {
         // Use default name if none provided
         return (name != null && !name.trim().isEmpty()) ? name : "Player " + playerNumber;
     }
+
+    /**
+     * Prompts for a player's token
+     */
+    private String promptPlayerToken(Player player) {
+        String availableTokens = Tokens.getavailabletokens();
+        String[] tokenArray = availableTokens.replace("[", "").replace("]", "").split(", ");
+
+        if (tokenArray.length > 0) {
+            String token = (String) JOptionPane.showInputDialog(
+                    this,
+                    player.getName() + ", choose your token:",
+                    "Token Selection",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    tokenArray,
+                    tokenArray[0]
+            );
+
+            // Return selected token or first available if canceled
+            return (token != null) ? token : tokenArray[0];
+        }
+
+        return "No tokens available";
+    }
+
+    /**
+     * Updates the entire UI
+     */
+    private void updateUI() {
+        updatePlayerInfo();
+        updateActionButtons();
+        updateDiceDisplay();
+        updateCardDisplay();
+        boardPanel.repaint();
+    }
+
+    /**
+     * Logs a message to the game log
+     */
+    private void logMessage(String message) {
+        gameLog.append(message + "\n");
+        // Scroll to the bottom of the log
+        gameLog.setCaretPosition(gameLog.getDocument().getLength());
+    }
+
+    /**
+     * Creates all UI components
+     */
+    private void createUIComponents() {
+        // Main panel with border layout
+        mainPanel = new JPanel(new BorderLayout());
+
+        // Create game board panel with fixed size
+        boardPanel = new BoardPanel();
+        boardPanel.setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+        boardPanel.setMinimumSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+
+        // Create player info panel
+        playerInfoPanel = createPlayerInfoPanel();
+
+        // Create action panel with buttons
+        actionPanel = createActionPanel();
+
+        // Create dice display panel
+        dicePanel = createDicePanel();
+
+        // Create card display panel
+        cardDisplayPanel = createCardDisplayPanel();
+
+        // Create game log
+        gameLog = new JTextArea(10, 40);
+        gameLog.setEditable(false);
+        logScrollPane = new JScrollPane(gameLog);
+        logScrollPane.setBorder(new TitledBorder("Game Log"));
+    }
+
+    /**
+     * Lays out the UI components
+     */
+    private void layoutUIComponents() {
+        // Set up the right side panel containing player info and actions
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.add(playerInfoPanel, BorderLayout.NORTH);
+
+        // Add action panel and dice panel to center right
+        JPanel centerRightPanel = new JPanel(new BorderLayout());
+        centerRightPanel.add(actionPanel, BorderLayout.NORTH);
+        centerRightPanel.add(dicePanel, BorderLayout.CENTER);
+        centerRightPanel.add(cardDisplayPanel, BorderLayout.SOUTH);
+        rightPanel.add(centerRightPanel, BorderLayout.CENTER);
+
+        // Create a panel to hold the board with some padding
+        JPanel boardContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        boardContainer.add(boardPanel);
+
+        // Add components to main panel
+        mainPanel.add(boardContainer, BorderLayout.CENTER);
+        mainPanel.add(rightPanel, BorderLayout.EAST);
+        mainPanel.add(logScrollPane, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        setContentPane(mainPanel);
+    }
+
+    /**
+     * Creates the player information panel
+     */
+    private JPanel createPlayerInfoPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new TitledBorder("Players"));
+        panel.setPreferredSize(new Dimension(300, 250));
+
+        // Will be populated by updatePlayerInfo()
+        return panel;
+    }
+
+    /**
+     * Creates the action panel with buttons
+     */
+    private JPanel createActionPanel() {
+        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
+        panel.setBorder(new TitledBorder("Actions"));
+        panel.setPreferredSize(new Dimension(300, 200));
+
+        // Create buttons
+        rollDiceButton = new JButton("Roll Dice");
+        buyPropertyButton = new JButton("Buy Property");
+        auctionPropertyButton = new JButton("Auction Property");
+        buildHouseButton = new JButton("Build House");
+        mortgageButton = new JButton("Mortgage Property");
+        unmortgageButton = new JButton("Unmortgage Property");
+        endTurnButton = new JButton("End Turn");
+
+        // Jail buttons
+        payJailFeeButton = new JButton("Pay $50 to Get Out of Jail");
+        useJailCardButton = new JButton("Use Get Out of Jail Free Card");
+        rollForJailButton = new JButton("Roll for Doubles");
+
+        // Add action listeners
+        rollDiceButton.addActionListener(e -> handleRollDice());
+        buyPropertyButton.addActionListener(e -> handleBuyProperty());
+        auctionPropertyButton.addActionListener(e -> handleAuctionProperty());
+        buildHouseButton.addActionListener(e -> handleBuildHouse());
+        mortgageButton.addActionListener(e -> handleMortgage());
+        unmortgageButton.addActionListener(e -> handleUnmortgage());
+        endTurnButton.addActionListener(e -> handleEndTurn());
+
+        // Jail button actions
+        payJailFeeButton.addActionListener(e -> handlePayJailFee());
+        useJailCardButton.addActionListener(e -> handleUseJailCard());
+        rollForJailButton.addActionListener(e -> handleRollForJail());
+
+        // Return panel without adding buttons initially
+        // Buttons will be added dynamically based on game state
+        return panel;
+    }
+
+    /**
+     * Creates the dice display panel
+     */
+    private JPanel createDicePanel() {
+        JPanel panel = new JPanel();
+        panel.setBorder(new TitledBorder("Dice"));
+        panel.setPreferredSize(new Dimension(300, 100));
+
+        // Will be populated in updateDiceDisplay method
+        return panel;
+    }
+
+    /**
+     * Creates the card display panel for Chance and Community Chest
+     */
+    private JPanel createCardDisplayPanel() {
+        JPanel panel = new JPanel();
+        panel.setBorder(new TitledBorder("Last Card Drawn"));
+        panel.setPreferredSize(new Dimension(300, 150));
+
+        // Will be populated in updateCardDisplay method
+        return panel;
+    }
+
     /**
      * Updates the player information panel
      */
@@ -956,328 +612,6 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Creates all UI components
-     */
-    private void createUIComponents() {
-        // Main panel with border layout
-        mainPanel = new JPanel(new BorderLayout());
-
-        // Create game board panel
-        boardPanel = new BoardPanel();
-
-        // Create player info panel
-        playerInfoPanel = createPlayerInfoPanel();
-
-        // Create action panel with buttons
-        actionPanel = createActionPanel();
-
-        // Create dice display panel
-        dicePanel = createDicePanel();
-
-        // Create card display panel
-        cardDisplayPanel = createCardDisplayPanel();
-
-        // Create game log
-        gameLog = new JTextArea(10, 40);
-        gameLog.setEditable(false);
-        logScrollPane = new JScrollPane(gameLog);
-        logScrollPane.setBorder(new TitledBorder("Game Log"));
-    }
-
-    /**
-     * Lays out the UI components
-     */
-    private void layoutUIComponents() {
-        // Set up the right side panel containing player info and actions
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.add(playerInfoPanel, BorderLayout.NORTH);
-
-        // Add action panel and dice panel to center right
-        JPanel centerRightPanel = new JPanel(new BorderLayout());
-        centerRightPanel.add(actionPanel, BorderLayout.NORTH);
-        centerRightPanel.add(dicePanel, BorderLayout.CENTER);
-        centerRightPanel.add(cardDisplayPanel, BorderLayout.SOUTH);
-        rightPanel.add(centerRightPanel, BorderLayout.CENTER);
-
-        // Add board and right panel to main panel
-        mainPanel.add(boardPanel, BorderLayout.CENTER);
-        mainPanel.add(rightPanel, BorderLayout.EAST);
-
-        // Add game log to bottom
-        mainPanel.add(logScrollPane, BorderLayout.SOUTH);
-
-        // Add main panel to frame
-        setContentPane(mainPanel);
-    }
-
-    /**
-     * Custom panel for drawing the Monopoly board
-     */
-    private class BoardPanel extends JPanel {
-        private static final int BOARD_SIZE = 700;
-        private static final int SQUARE_SIZE = BOARD_SIZE / 10;
-
-        // Color palette for properties
-        private static final Color[] PROPERTY_COLORS = {
-                new Color(139, 69, 19),    // Brown
-                new Color(173, 216, 230),  // Light Blue
-                new Color(255, 192, 203),  // Pink
-                new Color(255, 165, 0),    // Orange
-                new Color(255, 0, 0),      // Red
-                new Color(255, 255, 0),    // Yellow
-                new Color(0, 128, 0),      // Green
-                new Color(0, 0, 139)       // Dark Blue
-        };
-
-        // Special space colors
-        private static final Color[] SPECIAL_COLORS = {
-                new Color(255, 182, 66),   // Chance - Orange
-                new Color(102, 0, 153),    // Community Chest - Purple
-                Color.BLACK,               // Tax - Black
-                new Color(0, 102, 153)     // Railroads/Utilities - Blue
-        };
-
-        public BoardPanel() {
-            setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
-            setBackground(new Color(212, 221, 178)); // Sage green background
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            // Draw white grid
-            g2d.setColor(Color.WHITE);
-            for (int i = 0; i <= 10; i++) {
-                g2d.drawLine(i * SQUARE_SIZE, 0, i * SQUARE_SIZE, BOARD_SIZE);
-                g2d.drawLine(0, i * SQUARE_SIZE, BOARD_SIZE, i * SQUARE_SIZE);
-            }
-
-            // Draw corner spaces
-            drawCornerSpaces(g2d);
-
-            // Draw property spaces
-            drawBottomRow(g2d);
-            drawTopRow(g2d);
-            drawLeftColumn(g2d);
-            drawRightColumn(g2d);
-
-            // Draw center spaces
-            drawCenterSpaces(g2d);
-        }
-
-        private void drawCornerSpaces(Graphics2D g2d) {
-            Color[] cornerColors = {
-                    new Color(255, 182, 66),   // GO - Orange
-                    new Color(153, 102, 51),   // Jail - Brown
-                    Color.BLACK,               // Free Parking - Black
-                    new Color(102, 0, 0)       // Go To Jail - Dark Red
-            };
-
-            String[] cornerLabels = {"GO", "JAIL", "FREE\nPARKING", "GO\nTO\nJAIL"};
-
-            int[][] cornerPositions = {
-                    {0, 0},
-                    {BOARD_SIZE - SQUARE_SIZE, 0},
-                    {BOARD_SIZE - SQUARE_SIZE, BOARD_SIZE - SQUARE_SIZE},
-                    {0, BOARD_SIZE - SQUARE_SIZE}
-            };
-
-            for (int i = 0; i < 4; i++) {
-                g2d.setColor(cornerColors[i]);
-                g2d.fillRect(cornerPositions[i][0], cornerPositions[i][1], SQUARE_SIZE, SQUARE_SIZE);
-
-                // Draw labels
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font("Arial", Font.BOLD, 10));
-                drawCenteredMultilineText(g2d, cornerLabels[i],
-                        cornerPositions[i][0], cornerPositions[i][1],
-                        SQUARE_SIZE, SQUARE_SIZE);
-            }
-        }
-
-        private void drawBottomRow(Graphics2D g2d) {
-            String[] properties = {
-                    "Community Chest", "Baltic Avenue", "Income Tax",
-                    "Mediterranean Avenue", "Reading Railroad",
-                    "Oriental Avenue", "Chance", "Vermont Avenue",
-                    "Connecticut Avenue"
-            };
-
-            int[] colorIndices = {-1, 0, -1, 0, -1, 1, -1, 1, 1};
-
-            for (int i = 0; i < properties.length; i++) {
-                int x = BOARD_SIZE - SQUARE_SIZE - (i + 1) * SQUARE_SIZE;
-                int y = BOARD_SIZE - SQUARE_SIZE;
-
-                // Color strip
-                if (colorIndices[i] != -1) {
-                    g2d.setColor(PROPERTY_COLORS[colorIndices[i]]);
-                    g2d.fillRect(x, y, SQUARE_SIZE, 15);
-                } else {
-                    g2d.setColor(SPECIAL_COLORS[i]);
-                    g2d.fillRect(x, y, SQUARE_SIZE, 15);
-                }
-
-                // Label
-                g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-                drawVerticalText(g2d, properties[i], x + 5, y + SQUARE_SIZE - 10);
-            }
-        }
-
-        private void drawTopRow(Graphics2D g2d) {
-            String[] properties = {
-                    "Kentucky Avenue", "Indiana Avenue", "Illinois Avenue",
-                    "St. Charles Place", "Electric Company", "Water Works"
-            };
-
-            int[] colorIndices = {4, 4, 4, 2, -1, -1};
-
-            for (int i = 0; i < properties.length; i++) {
-                int x = SQUARE_SIZE + i * SQUARE_SIZE;
-                int y = 0;
-
-                // Color strip
-                if (colorIndices[i] != -1) {
-                    g2d.setColor(PROPERTY_COLORS[colorIndices[i]]);
-                    g2d.fillRect(x, y, SQUARE_SIZE, 15);
-                } else {
-                    g2d.setColor(SPECIAL_COLORS[4 + i]);
-                    g2d.fillRect(x, y, SQUARE_SIZE, 15);
-                }
-
-                // Label
-                g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-                drawVerticalText(g2d, properties[i], x + 5, y + 15);
-            }
-        }
-
-        private void drawLeftColumn(Graphics2D g2d) {
-            String[] properties = {
-                    "St. James Place", "Tennessee Avenue", "New York Avenue",
-                    "Pennsylvania Avenue", "North Carolina Avenue", "Pacific Avenue",
-                    "Marvin Gardens", "Ventnor Avenue", "Atlantic Avenue"
-            };
-
-            int[] colorIndices = {3, 3, 3, 6, 6, 6, 5, 5, 5};
-
-            for (int i = 0; i < properties.length; i++) {
-                int x = 0;
-                int y = SQUARE_SIZE + i * SQUARE_SIZE;
-
-                // Color strip
-                g2d.setColor(PROPERTY_COLORS[colorIndices[i]]);
-                g2d.fillRect(x, y, 15, SQUARE_SIZE);
-
-                // Label
-                g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-                drawRotatedText(g2d, properties[i], x + 20, y + SQUARE_SIZE/2);
-            }
-        }
-
-        private void drawRightColumn(Graphics2D g2d) {
-            String[] properties = {
-                    "Park Place", "Boardwalk", "B. & O. Railroad",
-                    "Short Line", "Pennsylvania Railroad", "Reading Railroad"
-            };
-
-            int[] colorIndices = {7, 7, -1, -1, -1, -1};
-
-            for (int i = 0; i < properties.length; i++) {
-                int x = BOARD_SIZE - SQUARE_SIZE;
-                int y = BOARD_SIZE - SQUARE_SIZE - (i + 1) * SQUARE_SIZE;
-
-                // Color strip
-                if (colorIndices[i] != -1) {
-                    g2d.setColor(PROPERTY_COLORS[colorIndices[i]]);
-                    g2d.fillRect(x, y, 15, SQUARE_SIZE);
-                } else {
-                    g2d.setColor(SPECIAL_COLORS[3]);
-                    g2d.fillRect(x, y, 15, SQUARE_SIZE);
-                }
-
-                // Label
-                g2d.setColor(Color.BLACK);
-                g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-                drawRotatedText(g2d, properties[i], x + 20, y + SQUARE_SIZE/2);
-            }
-        }
-
-        private void drawCenterSpaces(Graphics2D g2d) {
-            // Two diamond-shaped center spaces
-            Color[] centerColors = {
-                    new Color(255, 182, 66),  // Chance orange
-                    new Color(102, 0, 153)    // Community Chest purple
-            };
-
-            int[][] centerPositions = {
-                    {SQUARE_SIZE * 3, SQUARE_SIZE * 3},
-                    {SQUARE_SIZE * 6, SQUARE_SIZE * 6}
-            };
-
-            for (int i = 0; i < 2; i++) {
-                g2d.setColor(centerColors[i]);
-
-                // Create diamond shape
-                int[] xPoints = {
-                        centerPositions[i][0] + SQUARE_SIZE/2,
-                        centerPositions[i][0] + SQUARE_SIZE,
-                        centerPositions[i][0] + SQUARE_SIZE/2,
-                        centerPositions[i][0]
-                };
-                int[] yPoints = {
-                        centerPositions[i][1],
-                        centerPositions[i][1] + SQUARE_SIZE/2,
-                        centerPositions[i][1] + SQUARE_SIZE,
-                        centerPositions[i][1] + SQUARE_SIZE/2
-                };
-
-                // Draw diamond with dashed border
-                g2d.fillPolygon(xPoints, yPoints, 4);
-
-                // Dashed border
-                Stroke dashed = new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-                        10f, new float[]{5f}, 0f);
-                g2d.setStroke(dashed);
-                g2d.setColor(Color.WHITE);
-                g2d.drawPolygon(xPoints, yPoints, 4);
-            }
-        }
-
-        private void drawCenteredMultilineText(Graphics2D g2d, String text,
-                                               int x, int y, int width, int height) {
-            String[] lines = text.split("\n");
-            FontMetrics fm = g2d.getFontMetrics();
-            int lineHeight = fm.getHeight();
-
-            int totalTextHeight = lines.length * lineHeight;
-            int startY = y + (height - totalTextHeight) / 2 + fm.getAscent();
-
-            for (int i = 0; i < lines.length; i++) {
-                int textWidth = fm.stringWidth(lines[i]);
-                int startX = x + (width - textWidth) / 2;
-                g2d.drawString(lines[i], startX, startY + i * lineHeight);
-            }
-        }
-
-        private void drawRotatedText(Graphics2D g2d, String text, int x, int y) {
-            Graphics2D g2dRotated = (Graphics2D) g2d.create();
-            g2dRotated.rotate(-Math.PI/2, x, y);
-            g2dRotated.drawString(text, x - 50, y);
-            g2dRotated.dispose();
-        }
-
-        private void drawVerticalText(Graphics2D g2d, String text, int x, int y) {
-            g2d.drawString(text, x, y);
-        }
-    }
-
-    /**
      * Updates the card display
      */
     private void updateCardDisplay() {
@@ -1310,116 +644,1332 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Creates the player information panel
+     * Handles rolling dice for the current player
      */
-    private JPanel createPlayerInfoPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new TitledBorder("Players"));
-        panel.setPreferredSize(new Dimension(300, 250));
+    private void handleRollDice() {
+        // Roll two dice
+        int die1 = (int) (Math.random() * 6) + 1;
+        int die2 = (int) (Math.random() * 6) + 1;
+        lastDiceRoll[0] = die1;
+        lastDiceRoll[1] = die2;
 
-        // Will be populated by updatePlayerInfo()
-        return panel;
+        // Update dice display
+        updateDiceDisplay();
+
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        // Move player
+        int totalRoll = die1 + die2;
+        currentPlayer.move(totalRoll, board);
+
+        // Log the roll and movement
+        logMessage(currentPlayer.getName() + " rolled a " + die1 + " and a " + die2 +
+                " (Total: " + totalRoll + ")");
+        logMessage(currentPlayer.getName() + " moved to " +
+                board.getspace(currentPlayer.getPosition()).getName());
+
+        // Perform actions for the space landed on
+        currentPlayer.performTurnActions(gameState);
+
+        // Update UI components
+        updatePlayerInfo();
+        updateActionButtons();
+        boardPanel.repaint();
     }
 
     /**
-     * Creates the action panel with buttons
+     * Handles buying a property
      */
-    private JPanel createActionPanel() {
-        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
-        panel.setBorder(new TitledBorder("Actions"));
-        panel.setPreferredSize(new Dimension(300, 200));
+    private void handleBuyProperty() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+        Space currentSpace = board.getspace(currentPlayer.getPosition());
 
-        // Create buttons
-        rollDiceButton = new JButton("Roll Dice");
-        buyPropertyButton = new JButton("Buy Property");
-        auctionPropertyButton = new JButton("Auction Property");
-        buildHouseButton = new JButton("Build House");
-        mortgageButton = new JButton("Mortgage Property");
-        unmortgageButton = new JButton("Unmortgage Property");
-        endTurnButton = new JButton("End Turn");
+        try {
+            if (currentSpace instanceof Property) {
+                Property property = (Property) currentSpace;
+                currentPlayer.buyProperty(property);
+                logMessage(currentPlayer.getName() + " bought " + property.getName() + " for $" + property.getPrice());
+            } else if (currentSpace instanceof RailroadSpace) {
+                RailroadSpace railroad = (RailroadSpace) currentSpace;
+                currentPlayer.buyRailroad(railroad);
+                logMessage(currentPlayer.getName() + " bought " + railroad.getName() + " for $" + railroad.getPrice());
+            } else if (currentSpace instanceof UtilitySpace) {
+                UtilitySpace utility = (UtilitySpace) currentSpace;
+                currentPlayer.buyUtility(utility);
+                logMessage(currentPlayer.getName() + " bought " + utility.getName() + " for $" + utility.getPrice());
+            }
 
-        // Jail buttons
-        payJailFeeButton = new JButton("Pay $50 to Get Out of Jail");
-        useJailCardButton = new JButton("Use Get Out of Jail Free Card");
-        rollForJailButton = new JButton("Roll for Doubles");
-
-        // Add action listeners
-        rollDiceButton.addActionListener(e -> handleRollDice());
-        buyPropertyButton.addActionListener(e -> handleBuyProperty());
-        auctionPropertyButton.addActionListener(e -> handleAuctionProperty());
-        buildHouseButton.addActionListener(e -> handleBuildHouse());
-        mortgageButton.addActionListener(e -> handleMortgage());
-        unmortgageButton.addActionListener(e -> handleUnmortgage());
-        endTurnButton.addActionListener(e -> handleEndTurn());
-
-        // Jail button actions
-        payJailFeeButton.addActionListener(e -> handlePayJailFee());
-        useJailCardButton.addActionListener(e -> handleUseJailCard());
-        rollForJailButton.addActionListener(e -> handleRollForJail());
-
-        // Return panel without adding buttons initially
-        // Buttons will be added dynamically based on game state
-        return panel;
+            // Update UI
+            updatePlayerInfo();
+            updateActionButtons();
+            boardPanel.repaint();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Cannot Buy Property", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
-     * Creates the dice display panel
+     * Handles starting an auction for a property
      */
-    private JPanel createDicePanel() {
-        JPanel panel = new JPanel();
-        panel.setBorder(new TitledBorder("Dice"));
-        panel.setPreferredSize(new Dimension(300, 100));
+    private void handleAuctionProperty() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+        Space currentSpace = board.getspace(currentPlayer.getPosition());
 
-        // Will be populated in updateDiceDisplay method
-        return panel;
+        // Open auction dialog
+        AuctionDialog auctionDialog = new AuctionDialog(this, players, currentSpace);
+        auctionDialog.setVisible(true);
+
+        // Update UI after auction
+        updatePlayerInfo();
+        updateActionButtons();
+        boardPanel.repaint();
     }
 
     /**
-     * Creates the card display panel for Chance and Community Chest
+     * Handles building a house on a property
      */
-    private JPanel createCardDisplayPanel() {
-        JPanel panel = new JPanel();
-        panel.setBorder(new TitledBorder("Last Card Drawn"));
-        panel.setPreferredSize(new Dimension(300, 150));
+    private void handleBuildHouse() {
+        Player currentPlayer = gameState.getCurrentPlayer();
 
-        // Will be populated in updateCardDisplay method
-        return panel;
-    }
+        // Get list of properties where player can build
+        List<Property> buildableProperties = currentPlayer.getProperties().stream()
+                .filter(p -> p.getColorGroup() != null &&
+                        board.playerOwnsAllInColorGroup(currentPlayer, p.getColorGroup()) &&
+                        p.getHouses() < 4)
+                .collect(Collectors.toList());
 
-    /**
-     * Prompts for a player's token
-     */
-    private String promptPlayerToken(Player player) {
-        String availableTokens = Tokens.getavailabletokens();
-        String[] tokenArray = availableTokens.replace("[", "").replace("]", "").split(", ");
-
-        if (tokenArray.length > 0) {
-            String token = (String) JOptionPane.showInputDialog(
-                    this,
-                    player.getName() + ", choose your token:",
-                    "Token Selection",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    tokenArray,
-                    tokenArray[0]
-            );
-
-            // Return selected token or first available if canceled
-            return (token != null) ? token : tokenArray[0];
+        if (buildableProperties.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No properties available to build houses on.",
+                    "Build House", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
 
-        return "No tokens available";
+        // Show property selection dialog
+        Property selectedProperty = (Property) JOptionPane.showInputDialog(
+                this,
+                "Select a property to build a house on:",
+                "Build House",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                buildableProperties.toArray(),
+                buildableProperties.get(0)
+        );
+
+        if (selectedProperty != null) {
+            try {
+                bank.sellHouses(selectedProperty, currentPlayer, 1, board);
+                logMessage(currentPlayer.getName() + " built a house on " + selectedProperty.getName());
+
+                // Update UI
+                updatePlayerInfo();
+                updateActionButtons();
+                boardPanel.repaint();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(),
+                        "Cannot Build House", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     /**
-     * Main method to start the Monopoly game
-     * @param args Command line arguments (not used)
+     * Handles mortgaging a property
+     */
+    private void handleMortgage() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        // Get list of properties that can be mortgaged
+        List<Property> mortgageableProperties = currentPlayer.getProperties().stream()
+                .filter(p -> !p.isMortgaged() && p.getHouses() == 0)
+                .collect(Collectors.toList());
+
+        if (mortgageableProperties.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No properties available to mortgage.",
+                    "Mortgage Property", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Show property selection dialog
+        Property selectedProperty = (Property) JOptionPane.showInputDialog(
+                this,
+                "Select a property to mortgage:",
+                "Mortgage Property",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                mortgageableProperties.toArray(),
+                mortgageableProperties.get(0)
+        );
+
+        if (selectedProperty != null) {
+            try {
+                currentPlayer.mortgageProperty(selectedProperty);
+                logMessage(currentPlayer.getName() + " mortgaged " + selectedProperty.getName());
+
+                // Update UI
+                updatePlayerInfo();
+                updateActionButtons();
+                boardPanel.repaint();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(),
+                        "Cannot Mortgage", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Handles unmortgaging a property
+     */
+    private void handleUnmortgage() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        // Get list of mortgaged properties
+        List<Property> mortgagedProperties = currentPlayer.getProperties().stream()
+                .filter(Property::isMortgaged)
+                .collect(Collectors.toList());
+
+        if (mortgagedProperties.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No mortgaged properties to unmortgage.",
+                    "Unmortgage Property", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Show property selection dialog
+        Property selectedProperty = (Property) JOptionPane.showInputDialog(
+                this,
+                "Select a property to unmortgage:",
+                "Unmortgage Property",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                mortgagedProperties.toArray(),
+                mortgagedProperties.get(0)
+        );
+
+        if (selectedProperty != null) {
+            try {
+                currentPlayer.unmortgageProperty(selectedProperty);
+                logMessage(currentPlayer.getName() + " unmortgaged " + selectedProperty.getName());
+
+                // Update UI
+                updatePlayerInfo();
+                updateActionButtons();
+                boardPanel.repaint();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(),
+                        "Cannot Unmortgage", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Handles ending the current player's turn
+     */
+    private void handleEndTurn() {
+        // Reset dice roll
+        lastDiceRoll[0] = 0;
+        lastDiceRoll[1] = 0;
+
+        // Move to next player
+        gameState.nextTurn();
+
+        // Update UI components
+        updatePlayerInfo();
+        updateDiceDisplay();
+        updateActionButtons();
+        updateCardDisplay();
+
+        // Log turn change
+        logMessage("Turn ended. Current player: " + gameState.getCurrentPlayer().getName());
+        boardPanel.repaint();
+    }
+
+    /**
+     * Handles paying jail fee
+     */
+    private void handlePayJailFee() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        try {
+            // Only allow paying if player has enough money and is in jail
+            if (gameState.isPlayerInJail(currentPlayer) && currentPlayer.getMoney() >= 50) {
+                currentPlayer.subtractMoney(50);
+                gameState.releaseFromJail(currentPlayer);
+                logMessage(currentPlayer.getName() + " paid $50 to get out of jail");
+
+                // Update UI
+                updatePlayerInfo();
+                updateActionButtons();
+                boardPanel.repaint();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Cannot pay jail fee. Either not in jail or not enough money.",
+                        "Jail Fee Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "Cannot Pay Jail Fee", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Handles using a Get Out of Jail Free card
+     */
+    private void handleUseJailCard() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        try {
+            // Only allow using card if player is in jail and has a card
+            if (gameState.isPlayerInJail(currentPlayer) && currentPlayer.hasGetOutOfJailFreeCard()) {
+                gameState.releaseFromJail(currentPlayer);
+                currentPlayer.setHasGetOutOfJailFreeCard(false);
+                logMessage(currentPlayer.getName() + " used a Get Out of Jail Free card");
+
+                // Update UI
+                updatePlayerInfo();
+                updateActionButtons();
+                boardPanel.repaint();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Cannot use jail card. Either not in jail or no card available.",
+                        "Jail Card Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "Cannot Use Jail Card", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Handles rolling for jail release
+     */
+    private void handleRollForJail() {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        // Only allow rolling if player is in jail
+        if (!gameState.isPlayerInJail(currentPlayer)) {
+            JOptionPane.showMessageDialog(this,
+                    "You are not in jail.",
+                    "Roll for Jail Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int die1 = (int) (Math.random() * 6) + 1;
+        int die2 = (int) (Math.random() * 6) + 1;
+
+        lastDiceRoll[0] = die1;
+        lastDiceRoll[1] = die2;
+
+        // Update dice display
+        updateDiceDisplay();
+
+        try {
+            if (die1 == die2) {
+                // Doubles, get out of jail
+                gameState.releaseFromJail(currentPlayer);
+                logMessage(currentPlayer.getName() + " rolled doubles and got out of jail!");
+
+                // Move player based on dice roll
+                currentPlayer.move(die1 + die2, board);
+                currentPlayer.performTurnActions(gameState);
+            } else {
+                // Increment turns in jail
+                currentPlayer.setTurnsInJail(currentPlayer.getTurnsInJail() + 1);
+                logMessage(currentPlayer.getName() + " did not roll doubles. Remaining in jail.");
+
+                // Check if player has been in jail for 3 turns
+                if (currentPlayer.getTurnsInJail() >= 3) {
+                    // Must pay $50 to get out after 3 turns
+                    if (currentPlayer.getMoney() >= 50) {
+                        currentPlayer.subtractMoney(50);
+                        gameState.releaseFromJail(currentPlayer);
+                        currentPlayer.move(die1 + die2, board);
+                        currentPlayer.performTurnActions(gameState);
+                        logMessage(currentPlayer.getName() + " paid $50 and got out of jail after 3 turns.");
+                    } else {
+                        logMessage(currentPlayer.getName() + " cannot pay $50 to get out of jail.");
+                    }
+                }
+            }
+
+            // Update UI
+            updatePlayerInfo();
+            updateActionButtons();
+            boardPanel.repaint();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "Jail Roll Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Inner class for the auction dialog
+     */
+    private class AuctionDialog extends JDialog {
+        private final List<Player> players;
+        private final Space propertySpace;
+        private final Map<Player, JTextField> bidFields;
+        private Player highestBidder;
+        private int highestBid;
+
+        /**
+         * Constructs a new auction dialog
+         */
+        public AuctionDialog(JFrame parent, List<Player> players, Space propertySpace) {
+            super(parent, "Property Auction", true);
+            this.players = players;
+            this.propertySpace = propertySpace;
+            this.bidFields = new HashMap<>();
+            this.highestBid = 0;
+            this.highestBidder = null;
+
+            initComponents();
+            pack();
+            setLocationRelativeTo(parent);
+        }
+
+        /**
+         * Initializes the auction dialog components
+         */
+        private void initComponents() {
+            setLayout(new BorderLayout());
+
+            // Title panel showing property being auctioned
+            JPanel titlePanel = new JPanel();
+            titlePanel.add(new JLabel("Auction for " + propertySpace.getName()));
+            add(titlePanel, BorderLayout.NORTH);
+
+            // Bidding panel with player bidding controls
+            JPanel biddingPanel = new JPanel(new GridLayout(0, 3, 5, 5));
+            biddingPanel.setBorder(BorderFactory.createTitledBorder("Players"));
+
+            // Headers
+            biddingPanel.add(new JLabel("Player"));
+            biddingPanel.add(new JLabel("Bid Amount"));
+            biddingPanel.add(new JLabel("Actions"));
+
+            // Add bid controls for each player
+            for (Player player : players) {
+                // Skip current player if they declined to buy
+                if (player == gameState.getCurrentPlayer() && propertySpace.equals(board.getspace(player.getPosition()))) {
+                    continue;
+                }
+
+                // Player name
+                biddingPanel.add(new JLabel(player.getName() + " ($" + player.getMoney() + ")"));
+
+                // Bid field
+                JTextField bidField = new JTextField("0");
+                bidFields.put(player, bidField);
+                biddingPanel.add(bidField);
+
+                // Bid button
+                JButton bidButton = new JButton("Bid");
+                bidButton.addActionListener(e -> placeBid(player));
+                biddingPanel.add(bidButton);
+            }
+
+            add(new JScrollPane(biddingPanel), BorderLayout.CENTER);
+
+            // Control panel with finish button
+            JPanel controlPanel = new JPanel();
+            JButton finishButton = new JButton("Finish Auction");
+            finishButton.addActionListener(e -> finishAuction());
+            controlPanel.add(finishButton);
+
+            add(controlPanel, BorderLayout.SOUTH);
+        }
+
+        /**
+         * Places a bid for a player
+         */
+        private void placeBid(Player player) {
+            try {
+                JTextField bidField = bidFields.get(player);
+                int bidAmount = Integer.parseInt(bidField.getText());
+
+                // Validate bid
+                if (bidAmount <= highestBid) {
+                    JOptionPane.showMessageDialog(this,
+                            "Bid must be higher than the current highest bid of $" + highestBid,
+                            "Invalid Bid",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (bidAmount > player.getMoney()) {
+                    JOptionPane.showMessageDialog(this,
+                            "You cannot bid more than your available money: $" + player.getMoney(),
+                            "Invalid Bid",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Update highest bid
+                highestBid = bidAmount;
+                highestBidder = player;
+
+                // Highlight highest bid
+                for (Map.Entry<Player, JTextField> entry : bidFields.entrySet()) {
+                    entry.getValue().setBackground(entry.getKey() == highestBidder ? Color.YELLOW : Color.WHITE);
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        player.getName() + " has placed the highest bid of $" + bidAmount,
+                        "New Highest Bid",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                logMessage(player.getName() + " bids $" + bidAmount + " for " + propertySpace.getName());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Please enter a valid number for your bid",
+                        "Invalid Bid",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        /**
+         * Finishes the auction and sells the property to the highest bidder
+         */
+        private void finishAuction() {
+            if (highestBidder == null) {
+                JOptionPane.showMessageDialog(this,
+                        "No bids were placed. The property remains with the bank.",
+                        "Auction Ended",
+                        JOptionPane.INFORMATION_MESSAGE);
+                logMessage("No bids were placed for " + propertySpace.getName() + ". It remains with the bank.");
+                dispose();
+                return;
+            }
+
+            try {
+                // Handle different property types
+                if (propertySpace instanceof Property) {
+                    Property property = (Property) propertySpace;
+                    highestBidder.subtractMoney(highestBid);
+                    property.setOwner(highestBidder);
+                    highestBidder.getProperties().add(property);
+                    logMessage(highestBidder.getName() + " won the auction for " + property.getName() +
+                            " with a bid of $" + highestBid);
+                } else if (propertySpace instanceof RailroadSpace) {
+                    RailroadSpace railroad = (RailroadSpace) propertySpace;
+                    highestBidder.subtractMoney(highestBid);
+                    railroad.setOwner(highestBidder);
+                    logMessage(highestBidder.getName() + " won the auction for " + railroad.getName() +
+                            " with a bid of $" + highestBid);
+                } else if (propertySpace instanceof UtilitySpace) {
+                    UtilitySpace utility = (UtilitySpace) propertySpace;
+                    highestBidder.subtractMoney(highestBid);
+                    utility.setOwner(highestBidder);
+                    logMessage(highestBidder.getName() + " won the auction for " + utility.getName() +
+                            " with a bid of $" + highestBid);
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        highestBidder.getName() + " won the auction for " + propertySpace.getName() +
+                                " with a bid of $" + highestBid,
+                        "Auction Completed",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                dispose();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Error completing auction: " + e.getMessage(),
+                        "Auction Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * BoardPanel class to render the Monopoly game board
+     */
+    private class BoardPanel extends JPanel {
+        // Color palette for properties
+        private final Color[] PROPERTY_COLORS = {
+                new Color(139, 69, 19),    // Brown
+                new Color(173, 216, 230),  // Light Blue
+                new Color(255, 192, 203),  // Pink
+                new Color(255, 165, 0),    // Orange
+                new Color(255, 0, 0),      // Red
+                new Color(255, 255, 0),    // Yellow
+                new Color(0, 128, 0),      // Green
+                new Color(0, 0, 139)       // Dark Blue
+        };
+
+        // Special space colors
+        private final Color[] SPECIAL_COLORS = {
+                new Color(255, 182, 66),   // Chance - Orange
+                new Color(102, 0, 153),    // Community Chest - Purple
+                Color.LIGHT_GRAY,          // Tax spaces
+                new Color(0, 102, 153)     // Railroads/Utilities - Blue
+        };
+
+        /**
+         * Constructs a new BoardPanel
+         */
+        public BoardPanel() {
+            setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+            setMinimumSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+            setBackground(new Color(217, 238, 217)); // Light green background
+            setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            System.out.println("Painting board: " + getWidth() + "x" + getHeight());
+
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Draw board outline
+            drawBoardOutline(g2d);
+
+            // Draw spaces
+            drawCornerSpaces(g2d);
+            drawSideSpaces(g2d);
+
+            // Draw central logo
+            drawCentralLogo(g2d);
+
+            // Draw player tokens
+            drawPlayerTokens(g2d);
+        }
+
+        /**
+         * Draws the board outline
+         */
+        private void drawBoardOutline(Graphics2D g2d) {
+            // Draw outer border
+            g2d.setStroke(new BasicStroke(2));
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+
+            // Draw inner grid lines to outline the spaces
+            g2d.setStroke(new BasicStroke(1));
+
+            // Draw horizontal lines for the top and bottom rows
+            for (int i = 1; i < 11; i++) {
+                int x = i * SPACE_SIZE;
+                // Top row
+                g2d.drawLine(x, 0, x, SPACE_SIZE);
+                // Bottom row
+                g2d.drawLine(x, BOARD_SIZE - SPACE_SIZE, x, BOARD_SIZE);
+            }
+
+            // Draw vertical lines for the left and right columns
+            for (int i = 1; i < 11; i++) {
+                int y = i * SPACE_SIZE;
+                // Left column
+                g2d.drawLine(0, y, SPACE_SIZE, y);
+                // Right column
+                g2d.drawLine(BOARD_SIZE - SPACE_SIZE, y, BOARD_SIZE, y);
+            }
+        }
+
+        /**
+         * Draws the corner spaces (GO, Jail, Free Parking, Go To Jail)
+         */
+        private void drawCornerSpaces(Graphics2D g2d) {
+            // GO (Bottom right)
+            g2d.setColor(new Color(255, 240, 245)); // Light pink background
+            g2d.fillRect(BOARD_SIZE - SPACE_SIZE, BOARD_SIZE - SPACE_SIZE, SPACE_SIZE, SPACE_SIZE);
+            g2d.setColor(Color.RED);
+            g2d.setFont(new Font("Arial", Font.BOLD, 16));
+            drawRotatedText(g2d, "GO", BOARD_SIZE - SPACE_SIZE/2, BOARD_SIZE - SPACE_SIZE/2, 45);
+
+            // Just Visiting / Jail (Bottom left)
+            g2d.setColor(new Color(235, 235, 235)); // Light gray
+            g2d.fillRect(0, BOARD_SIZE - SPACE_SIZE, SPACE_SIZE, SPACE_SIZE);
+            // Draw jail cell
+            g2d.setColor(Color.ORANGE);
+            g2d.fillRect(5, BOARD_SIZE - SPACE_SIZE + 5, SPACE_SIZE - 10, SPACE_SIZE/2 - 5);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(5, BOARD_SIZE - SPACE_SIZE + 5, SPACE_SIZE - 10, SPACE_SIZE/2 - 5);
+            // Add text
+            g2d.setFont(new Font("Arial", Font.BOLD, 10));
+            g2d.drawString("JAIL", 10, BOARD_SIZE - SPACE_SIZE/2);
+            g2d.drawString("Just Visiting", 5, BOARD_SIZE - 10);
+
+            // Free Parking (Top left)
+            g2d.setColor(new Color(235, 235, 235)); // Light gray
+            g2d.fillRect(0, 0, SPACE_SIZE, SPACE_SIZE);
+            g2d.setColor(Color.RED);
+            g2d.setFont(new Font("Arial", Font.BOLD, 10));
+            g2d.drawString("FREE", 10, 20);
+            g2d.drawString("PARKING", 5, 40);
+
+            // Go To Jail (Top right)
+            g2d.setColor(new Color(235, 235, 235)); // Light gray
+            g2d.fillRect(BOARD_SIZE - SPACE_SIZE, 0, SPACE_SIZE, SPACE_SIZE);
+            g2d.setColor(Color.BLUE);
+            g2d.setFont(new Font("Arial", Font.BOLD, 10));
+            g2d.drawString("GO TO", BOARD_SIZE - SPACE_SIZE + 10, 20);
+            g2d.drawString("JAIL", BOARD_SIZE - SPACE_SIZE + 15, 40);
+        }
+        /**
+         * Draws the side spaces (properties, utilities, railroads, etc.) with improved visibility
+         */
+        private void drawSideSpaces(Graphics2D g2d) {
+            // Set a thicker stroke for better visibility of space borders
+            Stroke originalStroke = g2d.getStroke();
+            g2d.setStroke(new BasicStroke(1.5f));
+
+            // Create a smaller font for property names to avoid text overlap
+            Font smallFont = new Font("Arial", Font.BOLD, 7);
+            Font ownerFont = new Font("Arial", Font.BOLD, 7);
+
+            // Bottom row (left to right, excluding corners)
+            for (int i = 1; i < 10; i++) {
+                int x = SPACE_SIZE * i;
+                int y = BOARD_SIZE - SPACE_SIZE;
+
+                // Get the corresponding space from the board
+                Space space = board.getspace((i + 30) % 40); // Bottom row spaces
+
+                // Fill space background with a border
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(x, y, SPACE_SIZE, SPACE_SIZE);
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(x, y, SPACE_SIZE, SPACE_SIZE);
+
+                // Draw property band if it's a property
+                if (space instanceof Property) {
+                    Property property = (Property) space;
+                    int colorIndex = getColorIndex(property.getColorGroup());
+                    g2d.setColor(PROPERTY_COLORS[colorIndex]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15); // Add border to color band
+                } else if (space instanceof RailroadSpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                } else if (space instanceof UtilitySpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                } else {
+                    // Special spaces
+                    g2d.setColor(SPECIAL_COLORS[i % SPECIAL_COLORS.length]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                }
+
+                // Draw space name with better wrapping
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(smallFont);
+                drawWrappedText(g2d, space.getName(), x + 3, y + 25, SPACE_SIZE - 6);
+
+                // If property is owned, show owner
+                if ((space instanceof Property && ((Property)space).isOwned()) ||
+                        (space instanceof RailroadSpace && ((RailroadSpace)space).isOwned()) ||
+                        (space instanceof UtilitySpace && ((UtilitySpace)space).isOwned())) {
+
+                    Player owner = space.getOwner();
+                    if (owner != null) {
+                        g2d.setColor(Color.RED);
+                        g2d.setFont(ownerFont);
+                        drawCenteredString(g2d, "Owner: " + owner.getName(), x, y + 45, SPACE_SIZE);
+                    }
+                }
+            }
+
+            // Left column (bottom to top, excluding corners)
+            for (int i = 1; i < 10; i++) {
+                int x = 0;
+                int y = BOARD_SIZE - SPACE_SIZE * (i + 1);
+
+                // Get the corresponding space from the board
+                Space space = board.getspace(20 + i); // Left column spaces
+
+                // Fill space background
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(x, y, SPACE_SIZE, SPACE_SIZE);
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(x, y, SPACE_SIZE, SPACE_SIZE);
+
+                // Draw property band if it's a property
+                if (space instanceof Property) {
+                    Property property = (Property) space;
+                    int colorIndex = getColorIndex(property.getColorGroup());
+                    g2d.setColor(PROPERTY_COLORS[colorIndex]);
+                    g2d.fillRect(x, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, 15, SPACE_SIZE);
+                } else if (space instanceof RailroadSpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, 15, SPACE_SIZE);
+                } else if (space instanceof UtilitySpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, 15, SPACE_SIZE);
+                } else {
+                    // Special spaces
+                    g2d.setColor(SPECIAL_COLORS[i % SPECIAL_COLORS.length]);
+                    g2d.fillRect(x, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, 15, SPACE_SIZE);
+                }
+
+                // Draw space name (rotated but better positioned)
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(smallFont);
+                // Draw text vertically but with better positioning
+                drawVerticalWrappedText(g2d, space.getName(), x + 25, y + 5, SPACE_SIZE - 10);
+
+                // If property is owned, show owner
+                if ((space instanceof Property && ((Property)space).isOwned()) ||
+                        (space instanceof RailroadSpace && ((RailroadSpace)space).isOwned()) ||
+                        (space instanceof UtilitySpace && ((UtilitySpace)space).isOwned())) {
+
+                    Player owner = space.getOwner();
+                    if (owner != null) {
+                        g2d.setColor(Color.RED);
+                        g2d.setFont(ownerFont);
+                        drawRotatedCenteredString(g2d, "Owner: " + owner.getName(), x + 40, y, SPACE_SIZE, 90);
+                    }
+                }
+            }
+
+            // Top row (right to left, excluding corners)
+            for (int i = 1; i < 10; i++) {
+                int x = BOARD_SIZE - SPACE_SIZE * (i + 1);
+                int y = 0;
+
+                // Get the corresponding space from the board
+                Space space = board.getspace(20 - i); // Top row spaces
+
+                // Fill space background
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(x, y, SPACE_SIZE, SPACE_SIZE);
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(x, y, SPACE_SIZE, SPACE_SIZE);
+
+                // Draw property band if it's a property
+                if (space instanceof Property) {
+                    Property property = (Property) space;
+                    int colorIndex = getColorIndex(property.getColorGroup());
+                    g2d.setColor(PROPERTY_COLORS[colorIndex]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                } else if (space instanceof RailroadSpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                } else if (space instanceof UtilitySpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                } else {
+                    // Special spaces
+                    g2d.setColor(SPECIAL_COLORS[i % SPECIAL_COLORS.length]);
+                    g2d.fillRect(x, y, SPACE_SIZE, 15);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x, y, SPACE_SIZE, 15);
+                }
+
+                // Draw space name (upside down with better positioning)
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(smallFont);
+                // For top row, text is upside down
+                drawUpsideDownWrappedText(g2d, space.getName(), x + 3, y + 25, SPACE_SIZE - 6);
+
+                // If property is owned, show owner
+                if ((space instanceof Property && ((Property)space).isOwned()) ||
+                        (space instanceof RailroadSpace && ((RailroadSpace)space).isOwned()) ||
+                        (space instanceof UtilitySpace && ((UtilitySpace)space).isOwned())) {
+
+                    Player owner = space.getOwner();
+                    if (owner != null) {
+                        g2d.setColor(Color.RED);
+                        g2d.setFont(ownerFont);
+                        drawRotatedCenteredString(g2d, "Owner: " + owner.getName(), x, y + 40, SPACE_SIZE, 180);
+                    }
+                }
+            }
+
+            // Right column (top to bottom, excluding corners)
+            for (int i = 1; i < 10; i++) {
+                int x = BOARD_SIZE - SPACE_SIZE;
+                int y = SPACE_SIZE * i;
+
+                // Get the corresponding space from the board
+                Space space = board.getspace(i); // Right column spaces
+
+                // Fill space background
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(x, y, SPACE_SIZE, SPACE_SIZE);
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(x, y, SPACE_SIZE, SPACE_SIZE);
+
+                // Draw property band if it's a property
+                if (space instanceof Property) {
+                    Property property = (Property) space;
+                    int colorIndex = getColorIndex(property.getColorGroup());
+                    g2d.setColor(PROPERTY_COLORS[colorIndex]);
+                    g2d.fillRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                } else if (space instanceof RailroadSpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                } else if (space instanceof UtilitySpace) {
+                    g2d.setColor(SPECIAL_COLORS[3]);
+                    g2d.fillRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                } else {
+                    // Special spaces
+                    g2d.setColor(SPECIAL_COLORS[i % SPECIAL_COLORS.length]);
+                    g2d.fillRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawRect(x + SPACE_SIZE - 15, y, 15, SPACE_SIZE);
+                }
+
+                // Draw space name (rotated 270 degrees)
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(smallFont);
+                drawVerticalRightSideText(g2d, space.getName(), x + 25, y + 5, SPACE_SIZE - 10);
+
+                // If property is owned, show owner
+                if ((space instanceof Property && ((Property)space).isOwned()) ||
+                        (space instanceof RailroadSpace && ((RailroadSpace)space).isOwned()) ||
+                        (space instanceof UtilitySpace && ((UtilitySpace)space).isOwned())) {
+
+                    Player owner = space.getOwner();
+                    if (owner != null) {
+                        g2d.setColor(Color.RED);
+                        g2d.setFont(ownerFont);
+                        drawRotatedCenteredString(g2d, "Owner: " + owner.getName(), x + 40, y, SPACE_SIZE, 270);
+                    }
+                }
+            }
+
+            // Restore original stroke
+            g2d.setStroke(originalStroke);
+        }
+
+        /**
+         * Helper method to draw wrapped text for property names
+         */
+        private void drawWrappedText(Graphics2D g2d, String text, int x, int y, int width) {
+            FontMetrics fm = g2d.getFontMetrics();
+            String[] words = text.split(" ");
+
+            StringBuilder currentLine = new StringBuilder();
+            int currentY = y;
+
+            for (String word : words) {
+                // Test if adding this word would exceed the width
+                String testLine = currentLine.length() > 0
+                        ? currentLine + " " + word
+                        : word;
+
+                if (fm.stringWidth(testLine) <= width) {
+                    // Word fits, add it to current line
+                    if (currentLine.length() > 0) {
+                        currentLine.append(" ");
+                    }
+                    currentLine.append(word);
+                } else {
+                    // Word doesn't fit, draw current line and start a new one with this word
+                    if (currentLine.length() > 0) {
+                        drawCenteredString(g2d, currentLine.toString(), x - 3, currentY, width + 6);
+                        currentY += fm.getHeight();
+                        currentLine = new StringBuilder(word);
+                    } else {
+                        // If first word is too long, just draw it anyway
+                        drawCenteredString(g2d, word, x - 3, currentY, width + 6);
+                        currentY += fm.getHeight();
+                        currentLine = new StringBuilder();
+                    }
+                }
+            }
+
+            // Draw any remaining text
+            if (currentLine.length() > 0) {
+                drawCenteredString(g2d, currentLine.toString(), x - 3, currentY, width + 6);
+            }
+        }
+
+        /**
+         * Draws vertical wrapped text (for left column)
+         */
+        private void drawVerticalWrappedText(Graphics2D g2d, String text, int x, int y, int height) {
+            // Save the current transform
+            AffineTransform originalTransform = g2d.getTransform();
+
+            // Split the text into words
+            String[] words = text.split(" ");
+
+            // Rotate for vertical text
+            g2d.rotate(Math.PI/2, x, y);
+
+            FontMetrics fm = g2d.getFontMetrics();
+            int lineHeight = fm.getHeight();
+
+            int currentX = x;
+
+            for (String word : words) {
+                // Draw each word vertically stacked
+                g2d.drawString(word, currentX - fm.stringWidth(word)/2, y);
+                currentX += lineHeight;
+
+                // Make sure we don't exceed the space height
+                if (currentX - x > height) {
+                    break;
+                }
+            }
+
+            // Restore the original transform
+            g2d.setTransform(originalTransform);
+        }
+
+        /**
+         * Draws upside-down wrapped text (for top row)
+         */
+        private void drawUpsideDownWrappedText(Graphics2D g2d, String text, int x, int y, int width) {
+            // Save the current transform
+            AffineTransform originalTransform = g2d.getTransform();
+
+            // Rotate 180 degrees around the center of the text area
+            g2d.rotate(Math.PI, x + width/2, y - 5);
+
+            // Now draw the text normally (it will appear upside down due to rotation)
+            drawWrappedText(g2d, text, x, y, width);
+
+            // Restore the original transform
+            g2d.setTransform(originalTransform);
+        }
+
+        /**
+         * Draws vertical text for right column (270 degrees rotation)
+         */
+        private void drawVerticalRightSideText(Graphics2D g2d, String text, int x, int y, int height) {
+            // Save the current transform
+            AffineTransform originalTransform = g2d.getTransform();
+
+            // Split the text into words
+            String[] words = text.split(" ");
+
+            // Rotate for vertical text (opposite direction of left column)
+            g2d.rotate(-Math.PI/2, x, y);
+
+            FontMetrics fm = g2d.getFontMetrics();
+            int lineHeight = fm.getHeight();
+
+            int currentX = x;
+
+            for (String word : words) {
+                // Draw each word vertically stacked
+                g2d.drawString(word, currentX - fm.stringWidth(word)/2, y);
+                currentX += lineHeight;
+
+                // Make sure we don't exceed the space height
+                if (currentX - x > height) {
+                    break;
+                }
+            }
+
+            // Restore the original transform
+            g2d.setTransform(originalTransform);
+        }
+
+        /**
+         * Draws the central Monopoly logo
+         */
+        private void drawCentralLogo(Graphics2D g2d) {
+            // Save the current transform
+            AffineTransform originalTransform = g2d.getTransform();
+
+            // Center coordinates
+            int centerX = BOARD_SIZE / 2;
+            int centerY = BOARD_SIZE / 2;
+
+            // Draw MONOPOLY text
+            g2d.setFont(new Font("Arial", Font.BOLD, 48));
+            g2d.setColor(Color.RED);
+
+            // Rotate the text for a diagonal orientation
+            g2d.rotate(Math.PI / 4, centerX, centerY);
+
+            FontMetrics fm = g2d.getFontMetrics();
+            String logo = "MONOPOLY";
+            int textWidth = fm.stringWidth(logo);
+
+            // Draw the logo text centered
+            g2d.drawString(logo, centerX - textWidth / 2, centerY + fm.getAscent() / 2 - 10);
+
+            // Restore original transform for the cards
+            g2d.setTransform(originalTransform);
+
+            // Draw diamond-shaped Chance card area
+            drawDiamondCard(g2d, "CHANCE", centerX - 100, centerY - 100,
+                    new Color(255, 182, 66, 200), Color.BLACK);
+
+            // Draw diamond-shaped Community Chest card area
+            drawDiamondCard(g2d, "COMMUNITY CHEST", centerX + 40, centerY + 40,
+                    new Color(102, 0, 153, 200), Color.WHITE);
+        }
+
+        /**
+         * Helper method to draw a diamond-shaped card with text
+         */
+        private void drawDiamondCard(Graphics2D g2d, String text, int x, int y, Color fillColor, Color textColor) {
+            int cardSize = 100;
+
+            // Create diamond shape
+            int[] xPoints = {
+                    x,
+                    x + cardSize/2,
+                    x + cardSize,
+                    x + cardSize/2
+            };
+            int[] yPoints = {
+                    y + cardSize/2,
+                    y,
+                    y + cardSize/2,
+                    y + cardSize
+            };
+
+            // Draw diamond
+            g2d.setColor(fillColor);
+            g2d.fillPolygon(xPoints, yPoints, 4);
+
+            // Draw border
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawPolygon(xPoints, yPoints, 4);
+
+            // Draw text
+            g2d.setColor(textColor);
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+
+            // Split text if it's Community Chest
+            if (text.contains(" ")) {
+                String[] parts = text.split(" ");
+                FontMetrics fm = g2d.getFontMetrics();
+
+                for (int i = 0; i < parts.length; i++) {
+                    int textWidth = fm.stringWidth(parts[i]);
+                    g2d.drawString(parts[i], x + cardSize/2 - textWidth/2,
+                            y + cardSize/2 + i*15);
+                }
+            } else {
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                g2d.drawString(text, x + cardSize/2 - textWidth/2, y + cardSize/2);
+            }
+        }
+
+        /**
+         * Draws player tokens at their current positions on the board
+         */
+        private void drawPlayerTokens(Graphics2D g2d) {
+            // Draw each player's token at their current position
+            for (Player player : players) {
+                int position = player.getPosition();
+                Point tokenPos = getTokenPosition(position, player);
+
+                // Draw different tokens based on player color and token type
+                drawToken(g2d, player, tokenPos.x, tokenPos.y);
+            }
+        }
+
+        /**
+         * Gets the x,y coordinates for drawing a token at a given board position
+         */
+        private Point getTokenPosition(int position, Player player) {
+            int x, y;
+
+            // Determine the base position for the space
+            if (position == 0) {
+                // GO (bottom right)
+                x = BOARD_SIZE - SPACE_SIZE / 2;
+                y = BOARD_SIZE - SPACE_SIZE / 2;
+            } else if (position < 10) {
+                // Bottom row (right side)
+                x = BOARD_SIZE - SPACE_SIZE - (position * SPACE_SIZE) + SPACE_SIZE / 2;
+                y = BOARD_SIZE - SPACE_SIZE / 2;
+            } else if (position == 10) {
+                // JAIL (bottom left)
+                x = SPACE_SIZE / 2;
+                y = BOARD_SIZE - SPACE_SIZE / 2;
+            } else if (position < 20) {
+                // Left column (going up)
+                x = SPACE_SIZE / 2;
+                y = BOARD_SIZE - SPACE_SIZE - ((position - 10) * SPACE_SIZE) + SPACE_SIZE / 2;
+            } else if (position == 20) {
+                // FREE PARKING (top left)
+                x = SPACE_SIZE / 2;
+                y = SPACE_SIZE / 2;
+            } else if (position < 30) {
+                // Top row (going right)
+                x = SPACE_SIZE + ((position - 20) * SPACE_SIZE) - SPACE_SIZE / 2;
+                y = SPACE_SIZE / 2;
+            } else if (position == 30) {
+                // GO TO JAIL (top right)
+                x = BOARD_SIZE - SPACE_SIZE / 2;
+                y = SPACE_SIZE / 2;
+            } else {
+                // Right column (going down)
+                x = BOARD_SIZE - SPACE_SIZE / 2;
+                y = SPACE_SIZE + ((position - 30) * SPACE_SIZE) - SPACE_SIZE / 2;
+            }
+
+            // Add a small offset for each player to avoid tokens overlapping
+            // We'll get the player index and offset based on that
+            int playerIndex = players.indexOf(player);
+            x += (playerIndex - 1) * 7;
+            y += (playerIndex - 1) * 7;
+
+            return new Point(x, y);
+        }
+
+        /**
+         * Draws a token for a player at the specified coordinates
+         */
+        private void drawToken(Graphics2D g2d, Player player, int x, int y) {
+            String tokenName = player.getToken();
+
+            // Choose color based on player index
+            int playerIndex = players.indexOf(player);
+            Color[] playerColors = {
+                    Color.RED, Color.BLUE, Color.GREEN, Color.ORANGE
+            };
+            Color tokenColor = playerColors[playerIndex % playerColors.length];
+
+            // Draw the token based on its name
+            g2d.setColor(tokenColor);
+            if (tokenName.equals("Top Hat")) {
+                g2d.fillOval(x - 8, y - 8, 16, 10);  // Brim
+                g2d.fillRect(x - 5, y - 15, 10, 10); // Hat
+            } else if (tokenName.equals("Thimble")) {
+                g2d.fillOval(x - 8, y - 8, 16, 16);  // Base
+                g2d.setColor(Color.WHITE);
+                g2d.fillOval(x - 4, y - 4, 8, 8);    // Inside
+            } else if (tokenName.equals("Iron")) {
+                g2d.fillRect(x - 8, y - 5, 16, 10);  // Base
+                g2d.fillRect(x - 2, y - 12, 4, 8);   // Handle
+            } else if (tokenName.equals("Boot")) {
+                g2d.fillRect(x - 8, y - 4, 12, 8);   // Foot
+                g2d.fillRect(x - 4, y - 12, 8, 8);   // Ankle
+            } else if (tokenName.equals("Battleship")) {
+                g2d.fillRect(x - 10, y - 3, 20, 6);  // Hull
+                g2d.fillRect(x - 3, y - 10, 6, 10);  // Tower
+            } else if (tokenName.equals("Cannon")) {
+                g2d.fillRect(x - 10, y - 3, 20, 6);  // Base
+                g2d.fillRect(x - 3, y - 8, 15, 4);   // Barrel
+            } else if (tokenName.equals("Race Car")) {
+                g2d.fillRect(x - 10, y - 3, 20, 6);  // Body
+                g2d.fillOval(x - 8, y + 3, 6, 6);    // Rear wheel
+                g2d.fillOval(x + 2, y + 3, 6, 6);    // Front wheel
+            } else if (tokenName.equals("Scottie Dog")) {
+                g2d.fillOval(x - 8, y - 5, 16, 10);  // Body
+                g2d.fillOval(x + 4, y - 10, 8, 6);   // Head
+                g2d.fillRect(x + 8, y - 2, 4, 6);    // Tail
+            } else if (tokenName.equals("Wheelbarrow")) {
+                g2d.fillRect(x - 10, y - 3, 16, 6);  // Tray
+                g2d.fillOval(x + 4, y + 3, 6, 6);    // Wheel
+                g2d.fillRect(x - 10, y - 8, 4, 8);   // Handle
+            } else {
+                // Generic token if none of the above
+                g2d.fillOval(x - 8, y - 8, 16, 16);
+            }
+
+            // Draw a small name label below the token if player is current player
+            if (player == gameState.getCurrentPlayer()) {
+                g2d.setColor(Color.BLACK);
+                g2d.setFont(new Font("Arial", Font.BOLD, 8));
+                g2d.drawString(player.getName(), x - 10, y + 20);
+            }
+        }
+
+        /**
+         * Helper method to get the color index for a property color group
+         */
+        private int getColorIndex(String colorGroup) {
+            if (colorGroup == null) return 0;
+
+            switch (colorGroup.toLowerCase()) {
+                case "brown": return 0;
+                case "light blue": return 1;
+                case "pink": return 2;
+                case "orange": return 3;
+                case "red": return 4;
+                case "yellow": return 5;
+                case "green": return 6;
+                case "dark blue": return 7;
+                default: return 0;
+            }
+        }
+
+        /**
+         * Draws centered text
+         */
+        private void drawCenteredString(Graphics2D g2d, String text, int x, int y, int width) {
+            FontMetrics fm = g2d.getFontMetrics();
+            int textWidth = fm.stringWidth(text);
+            g2d.drawString(text, x + (width - textWidth) / 2, y);
+        }
+
+        /**
+         * Draws rotated text
+         */
+        private void drawRotatedText(Graphics2D g2d, String text, int x, int y, double angleDegrees) {
+            AffineTransform originalTransform = g2d.getTransform();
+
+            double angleRadians = Math.toRadians(angleDegrees);
+            g2d.rotate(angleRadians, x, y);
+            g2d.drawString(text, x, y);
+
+            g2d.setTransform(originalTransform);
+        }
+
+        /**
+         * Draws rotated and centered text
+         */
+        private void drawRotatedCenteredString(Graphics2D g2d, String text, int x, int y, int width, double angleDegrees) {
+            AffineTransform originalTransform = g2d.getTransform();
+
+            FontMetrics fm = g2d.getFontMetrics();
+            int textWidth = fm.stringWidth(text);
+            double angleRadians = Math.toRadians(angleDegrees);
+
+            g2d.rotate(angleRadians, x, y);
+
+            if (angleDegrees == 90 || angleDegrees == 270) {
+                // For vertical text
+                g2d.drawString(text, x - fm.getAscent() / 2, y + textWidth / 2);
+            } else {
+                // For horizontal or diagonal text
+                g2d.drawString(text, x - textWidth / 2, y);
+            }
+
+            g2d.setTransform(originalTransform);
+        }
+    }
+
+    /**
+     * Main method to launch the application
      */
     public static void main(String[] args) {
-        // Use SwingUtilities.invokeLater to ensure thread-safe GUI creation
+        // Launch the GUI on the event dispatch thread
         SwingUtilities.invokeLater(() -> {
-            new GUI(); // Create and show the GUI
+            new GUI();
         });
     }
 }
