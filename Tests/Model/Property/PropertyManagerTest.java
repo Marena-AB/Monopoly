@@ -157,7 +157,7 @@ public class PropertyManagerTest {
         propertyManager.addProperty(property1);
 
         // Create a different property at the same position
-        Property duplicatePosition = new Property("Duplicate", 1, 100, "Red");
+        Property duplicatePosition = new Property("Duplicate", 1, 100, property1.getColorGroup());
 
         // Add the duplicate position property
         propertyManager.addProperty(duplicatePosition);
@@ -196,7 +196,8 @@ public class PropertyManagerTest {
     public void testStressWithManyProperties() {
         // Add many properties (stress test)
         for (int i = 0; i < 100; i++) {
-            Property testProperty = new Property("Test " + i, i, 100, "Test");
+            // Use a valid color group instead of "Test"
+            Property testProperty = new Property("Test " + i, i, 100, "Brown");
             propertyManager.addProperty(testProperty);
         }
 
