@@ -1419,10 +1419,27 @@ public class GUI extends JFrame {
                     g2d.drawRect(x, y, 10, SPACE_SIZE);
                 }
 
-                // Draw space name using vertical text with better positioning
+                // Draw space name - SIMPLIFIED VERSION
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(smallFont);
-                drawLeftColumnText(g2d, space.getName(), x + 20, y + SPACE_SIZE / 2);
+
+                // Save original transform
+                AffineTransform originalTransform = g2d.getTransform();
+
+                // Draw in center of space, rotated 90 degrees
+                int centerX = x + SPACE_SIZE/2;
+                int centerY = y + SPACE_SIZE/2;
+
+                // Rotate text
+                g2d.rotate(Math.PI/2, centerX, centerY);
+
+                // Draw centered text
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(space.getName());
+                g2d.drawString(space.getName(), centerX - textWidth/2, centerY + 3);
+
+                // Restore transform
+                g2d.setTransform(originalTransform);
 
                 // If property is owned, show owner
                 if ((space instanceof Property && ((Property)space).isOwned()) ||
@@ -1433,6 +1450,8 @@ public class GUI extends JFrame {
                     if (owner != null) {
                         g2d.setColor(Color.RED);
                         g2d.setFont(ownerFont);
+
+                        // Draw owner name with rotation
                         g2d.rotate(Math.PI/2, x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
                         g2d.drawString("Owner: " + owner.getName(), x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
                         g2d.rotate(-Math.PI/2, x + SPACE_SIZE - 8, y + SPACE_SIZE/2);
@@ -1541,10 +1560,27 @@ public class GUI extends JFrame {
                     g2d.drawRect(x + SPACE_SIZE - 10, y, 10, SPACE_SIZE);
                 }
 
-                // Draw space name with vertical text
+                // Draw space name - SIMPLIFIED VERSION
                 g2d.setColor(Color.BLACK);
                 g2d.setFont(smallFont);
-                drawRightColumnText(g2d, space.getName(), x + 20, y + SPACE_SIZE/2);
+
+                // Save original transform
+                AffineTransform originalTransform = g2d.getTransform();
+
+                // Draw in center of space, rotated -90 degrees
+                int centerX = x + SPACE_SIZE/2;
+                int centerY = y + SPACE_SIZE/2;
+
+                // Rotate text
+                g2d.rotate(-Math.PI/2, centerX, centerY);
+
+                // Draw centered text
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(space.getName());
+                g2d.drawString(space.getName(), centerX - textWidth/2, centerY + 3);
+
+                // Restore transform
+                g2d.setTransform(originalTransform);
 
                 // If property is owned, show owner
                 if ((space instanceof Property && ((Property)space).isOwned()) ||
@@ -1555,9 +1591,13 @@ public class GUI extends JFrame {
                     if (owner != null) {
                         g2d.setColor(Color.RED);
                         g2d.setFont(ownerFont);
-                        g2d.rotate(-Math.PI/2, x + 10, y + SPACE_SIZE/2);
-                        g2d.drawString("Owner: " + owner.getName(), x + 10 - g2d.getFontMetrics().stringWidth("Owner: " + owner.getName())/2, y + SPACE_SIZE/2);
-                        g2d.rotate(Math.PI/2, x + 10, y + SPACE_SIZE/2);
+
+                        // Draw owner name with rotation
+                        g2d.rotate(-Math.PI/2, x + 8, y + SPACE_SIZE/2);
+                        String ownerText = "Owner: " + owner.getName();
+                        int ownerWidth = g2d.getFontMetrics().stringWidth(ownerText);
+                        g2d.drawString(ownerText, x + 8 - ownerWidth/2, y + SPACE_SIZE/2);
+                        g2d.rotate(Math.PI/2, x + 8, y + SPACE_SIZE/2);
                     }
                 }
             }
@@ -1568,7 +1608,7 @@ public class GUI extends JFrame {
 
 
         /**
-         * Improved method to draw bottom row text with better spacing and visibility
+         * Improved method to draw wrapped text for property names
          */
         private void drawWrappedText(Graphics2D g2d, String text, int x, int y, int width) {
             FontMetrics fm = g2d.getFontMetrics();
@@ -1635,78 +1675,10 @@ public class GUI extends JFrame {
             }
         }
 
-        /**
-         * Helper method to draw text for left column spaces with better visibility
-         */
-        private void drawLeftColumnText(Graphics2D g2d, String text, int x, int y) {
-            // Save original transform
-            AffineTransform originalTransform = g2d.getTransform();
 
-            // Rotate for vertical text - rotate 90 degrees counterclockwise for left column
-            g2d.rotate(Math.PI/2, x, y);
-
-            // Split into words for better space management
-            String[] words = text.split(" ");
-            FontMetrics fm = g2d.getFontMetrics();
-            int maxWidth = SPACE_SIZE - 25; // Available width
-
-            // Set position to be in the center of the rotated space
-            int centerX = 0;  // After rotation, this will be the vertical center
-            int centerY = y;  // This remains the horizontal position after rotation
-
-            StringBuilder currentLine = new StringBuilder();
-            int lineCount = 0;
-            int lineY = centerY; // Start at center and work outwards
-
-            // Loop through all words
-            for (int i = 0; i < words.length && lineCount < 2; i++) {
-                String word = words[i];
-
-                String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
-
-                if (fm.stringWidth(testLine) <= maxWidth) {
-                    // Word fits on current line
-                    if (currentLine.length() > 0) {
-                        currentLine.append(" ");
-                    }
-                    currentLine.append(word);
-                } else {
-                    // Word doesn't fit, draw current line and start new one
-                    if (currentLine.length() > 0) {
-                        int textWidth = fm.stringWidth(currentLine.toString());
-                        g2d.drawString(currentLine.toString(), centerX - textWidth/2, lineY);
-                        lineY -= fm.getHeight();
-                        lineCount++;
-                        currentLine = new StringBuilder(word);
-                    } else {
-                        // First word is too long, truncate it
-                        String truncated = word;
-                        while (truncated.length() > 3 && fm.stringWidth(truncated + "...") > maxWidth) {
-                            truncated = truncated.substring(0, truncated.length() - 1);
-                        }
-                        if (truncated.length() < word.length()) {
-                            truncated += "...";
-                        }
-                        int textWidth = fm.stringWidth(truncated);
-                        g2d.drawString(truncated, centerX - textWidth/2, lineY);
-                        lineY -= fm.getHeight();
-                        lineCount++;
-                    }
-                }
-            }
-
-            // Draw remaining text
-            if (currentLine.length() > 0 && lineCount < 2) {
-                int textWidth = fm.stringWidth(currentLine.toString());
-                g2d.drawString(currentLine.toString(), centerX - textWidth/2, lineY);
-            }
-
-            // Restore original transform
-            g2d.setTransform(originalTransform);
-        }
 
         /**
-         * Helper method to draw text for top row spaces with better visibility
+         * Helper method to draw text for top row spaces with better visibility - simplified version
          */
         private void drawTopRowText(Graphics2D g2d, String text, int x, int y) {
             // Save original transform
@@ -1715,132 +1687,19 @@ public class GUI extends JFrame {
             // Rotate 180 degrees for top row
             g2d.rotate(Math.PI, x, y);
 
-            // Split into words
-            String[] words = text.split(" ");
+            // Get font metrics for centering
             FontMetrics fm = g2d.getFontMetrics();
-            int maxWidth = SPACE_SIZE - 10; // Available width
+            int textWidth = fm.stringWidth(text);
 
-            // Use similar approach to wrapped text
-            int lineCount = 0;
-            int lineY = 0;
-            StringBuilder currentLine = new StringBuilder();
-
-            // Loop through all words
-            for (int i = 0; i < words.length && lineCount < 2; i++) {
-                String word = words[i];
-
-                String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
-
-                if (fm.stringWidth(testLine) <= maxWidth) {
-                    // Word fits on current line
-                    if (currentLine.length() > 0) {
-                        currentLine.append(" ");
-                    }
-                    currentLine.append(word);
-                } else {
-                    // Word doesn't fit, draw current line and start new one
-                    if (currentLine.length() > 0) {
-                        int textWidth = fm.stringWidth(currentLine.toString());
-                        g2d.drawString(currentLine.toString(), x - textWidth/2, y + lineY);
-                        lineY += fm.getHeight();
-                        lineCount++;
-                        currentLine = new StringBuilder(word);
-                    } else {
-                        // First word is too long, truncate it
-                        String truncated = word;
-                        while (truncated.length() > 3 && fm.stringWidth(truncated + "...") > maxWidth) {
-                            truncated = truncated.substring(0, truncated.length() - 1);
-                        }
-                        if (truncated.length() < word.length()) {
-                            truncated += "...";
-                        }
-                        int textWidth = fm.stringWidth(truncated);
-                        g2d.drawString(truncated, x - textWidth/2, y + lineY);
-                        lineY += fm.getHeight();
-                        lineCount++;
-                    }
-                }
-            }
-
-            // Draw remaining text
-            if (currentLine.length() > 0 && lineCount < 2) {
-                int textWidth = fm.stringWidth(currentLine.toString());
-                g2d.drawString(currentLine.toString(), x - textWidth/2, y + lineY);
-            }
+            // Draw the text centered
+            g2d.drawString(text, x - textWidth/2, y);
 
             // Restore original transform
             g2d.setTransform(originalTransform);
         }
 
-        /**
-         * Helper method to draw text for right column spaces with better visibility
-         */
-        private void drawRightColumnText(Graphics2D g2d, String text, int x, int y) {
-            // Save original transform
-            AffineTransform originalTransform = g2d.getTransform();
 
-            // Rotate for vertical text - rotate 270 degrees (or -90 degrees) for right column
-            g2d.rotate(-Math.PI/2, x, y);
 
-            // Split into words for better space management
-            String[] words = text.split(" ");
-            FontMetrics fm = g2d.getFontMetrics();
-            int maxWidth = SPACE_SIZE - 25; // Available width
-
-            // Set position to be in the center of the rotated space
-            int centerX = 0;  // After rotation, this will be the vertical center
-            int centerY = y;  // This remains the horizontal position after rotation
-
-            StringBuilder currentLine = new StringBuilder();
-            int lineCount = 0;
-            int lineY = centerY - 5; // Start slightly offset from center
-
-            // Loop through all words
-            for (int i = 0; i < words.length && lineCount < 2; i++) {
-                String word = words[i];
-
-                String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
-
-                if (fm.stringWidth(testLine) <= maxWidth) {
-                    // Word fits on current line
-                    if (currentLine.length() > 0) {
-                        currentLine.append(" ");
-                    }
-                    currentLine.append(word);
-                } else {
-                    // Word doesn't fit, draw current line and start new one
-                    if (currentLine.length() > 0) {
-                        int textWidth = fm.stringWidth(currentLine.toString());
-                        g2d.drawString(currentLine.toString(), centerX - textWidth/2, lineY);
-                        lineY += fm.getHeight();
-                        lineCount++;
-                        currentLine = new StringBuilder(word);
-                    } else {
-                        // First word is too long, truncate it
-                        String truncated = word;
-                        while (truncated.length() > 3 && fm.stringWidth(truncated + "...") > maxWidth) {
-                            truncated = truncated.substring(0, truncated.length() - 1);
-                        }
-                        if (truncated.length() < word.length()) {
-                            truncated += "...";
-                        }
-                        int textWidth = fm.stringWidth(truncated);
-                        g2d.drawString(truncated, centerX - textWidth/2, lineY);
-                        lineY += fm.getHeight();
-                        lineCount++;
-                    }
-                }
-            }
-
-            // Draw remaining text
-            if (currentLine.length() > 0 && lineCount < 2) {
-                int textWidth = fm.stringWidth(currentLine.toString());
-                g2d.drawString(currentLine.toString(), centerX - textWidth/2, lineY);
-            }
-
-            // Restore original transform
-            g2d.setTransform(originalTransform);
-        }
 
         /**
          * Draws the central Monopoly logo
