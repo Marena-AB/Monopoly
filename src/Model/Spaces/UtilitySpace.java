@@ -1,13 +1,13 @@
 package Model.Spaces;
-
-import Model.Board.Player;
-import Model.GameState;
-
 /**
  * Represents a utility space on the Monopoly board.
  * Utilities include the Electric Company and Water Works.
  * The rent depends on the dice roll and how many utilities the owner has.
  */
+import Model.Board.Player;
+import Model.GameState;
+
+
 public class UtilitySpace extends Space {
     private int price;
     private Model.Board.Player owner;

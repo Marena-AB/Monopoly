@@ -13,6 +13,7 @@ import Model.Spaces.UtilitySpace;
 public class ChanceCard extends Card {
 
     /**
+     * Author: Marena
      * Constructs a Chance card with the given description.
      *
      * @param description The text of the card
@@ -22,6 +23,7 @@ public class ChanceCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Gets the card type.
      *
      * @return "Chance"
@@ -32,6 +34,7 @@ public class ChanceCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Gets the deck name.
      *
      * @return "Chance Deck"
@@ -42,6 +45,7 @@ public class ChanceCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Executes the effect of the Chance card based on its description.
      *
      * @param player The player who drew the card
@@ -147,6 +151,7 @@ public class ChanceCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Helper method to move a player to a named location on the board.
      *
      * @param player The player to move
@@ -192,6 +197,7 @@ public class ChanceCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Helper method to move a player to the nearest location of a specific type.
      *
      * @param player The player to move

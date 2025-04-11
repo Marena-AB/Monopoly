@@ -1,4 +1,8 @@
 package Model.Board;
+/**
+ * This class represents a player in the Monopoly game.
+ * It manages the player's money, position, properties, and game actions.
+ */
 
 import Model.GameState;
 import Model.Property.Property;

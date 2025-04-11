@@ -12,6 +12,7 @@ import Model.Spaces.JailSpace;
 public class CommunityChestCard extends Card {
 
     /**
+     * Author: Marena
      * Constructs a Community Chest card with the given description.
      *
      * @param description The text of the card
@@ -21,6 +22,7 @@ public class CommunityChestCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Gets the card type.
      *
      * @return "Community Chest"
@@ -31,6 +33,7 @@ public class CommunityChestCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Gets the deck name.
      *
      * @return "Community Chest Deck"
@@ -41,6 +44,7 @@ public class CommunityChestCard extends Card {
     }
 
     /**
+     * Author: Marena
      * Executes the effect of the Community Chest card based on its description.
      *
      * @param player The player who drew the card

@@ -18,6 +18,7 @@ public enum PropertyColor {
     private final int groupSize;
 
     /**
+     * Author: Marena
      * Constructs a property color with display name and group size.
      *
      * @param displayName The display name of the color
@@ -29,6 +30,7 @@ public enum PropertyColor {
     }
 
     /**
+     * Author: Marena
      * Gets the display name of the color.
      *
      * @return The display name
@@ -38,6 +40,7 @@ public enum PropertyColor {
     }
 
     /**
+     * Author: Marena
      * Gets the number of properties in this color group.
      *
      * @return The group size
@@ -47,6 +50,7 @@ public enum PropertyColor {
     }
 
     /**
+     * Author: Marena
      * Gets the house price for this color group.
      *
      * @return The house price
@@ -71,6 +75,7 @@ public enum PropertyColor {
     }
 
     /**
+     * Author: Marena
      * Finds a PropertyColor by its display name (case-insensitive).
      *
      * @param name The display name to search for

@@ -1,4 +1,5 @@
-package Model; /**
+package Model;
+/**
  * Monopoly Game
  * This is a simple implementation of the Monopoly game.
  * It includes basic game mechanics such as rolling dice, moving players, buying properties, and handling jail.

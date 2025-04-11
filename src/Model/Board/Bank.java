@@ -1,5 +1,10 @@
 package Model.Board;
 
+/**
+ * This class represents the Bank in the Monopoly game.
+ * It manages the money, property deeds, houses, and hotels.
+ */
+
 import Model.Houses;
 import Model.Property.Property;
 import Model.Spaces.RailroadSpace;
@@ -25,6 +30,7 @@ public class Bank {
     private static final int STARTING_MONEY = 1500;
 
     /**
+     * Author: Marena
      * Constructs a new Bank with all resources initialized.
      */
     public Bank() {
@@ -35,6 +41,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Sets the initial properties available for purchase.
      *
      * @param properties The list of properties from the game board
@@ -44,6 +51,7 @@ public class Bank {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the list of available properties.
      *
      * @return The list of available properties
@@ -53,6 +61,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Gives starting money to a player.
      *
      * @param player The player to receive the money
@@ -63,6 +72,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Handles a player passing Go by giving them $200.
      *
      * @param player The player who passed Go
@@ -73,6 +83,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Sells a property to a player if they have enough money.
      *
      * @param property The property to sell
@@ -100,6 +111,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Sells houses to a player for a specific property if the bank has enough houses.
      *
      * @param property The property to add houses to
@@ -158,6 +170,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Sells a hotel to a player for a specific property if the bank has enough hotels.
      *
      * @param property The property to add a hotel to
@@ -203,6 +216,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Buys back houses from a player.
      *
      * @param property The property to remove houses from
@@ -241,6 +255,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Buys back a hotel from a player.
      *
      * @param property The property to remove the hotel from
@@ -284,6 +299,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Conducts an auction for a property when a player doesn't want to buy it.
      *
      * @param property The property to auction
@@ -330,6 +346,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Conducts an auction for a railroad space.
      *
      * @param railroad The railroad to auction
@@ -371,6 +388,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Conducts an auction for a utility space.
      *
      * @param utility The utility to auction
@@ -412,6 +430,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Checks if adding houses to a property will maintain even distribution across all properties in the color group.
      *
      * @param propertiesInGroup All properties in the color group
@@ -435,6 +454,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Returns the number of houses available in the bank.
      *
      * @return The number of houses available
@@ -444,6 +464,7 @@ public class Bank {
     }
 
     /**
+     * Author: Marena
      * Returns the number of hotels available in the bank.
      *
      * @return The number of hotels available

@@ -1,9 +1,10 @@
-package Model;
 
+package Model;
 /**
  * Represents the currency system in the Monopoly game.
  * Manages denominations and provides utility methods for handling money.
  */
+
 public class Money {
     // Standard Monopoly denominations
     public static final int ONE = 1;

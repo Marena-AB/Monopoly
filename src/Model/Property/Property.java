@@ -1,14 +1,14 @@
 package Model.Property;
-
+/**
+ * Represents a property space on the Monopoly board.
+ * Properties can be bought, sold, and developed with houses and hotels.
+ */
 import Model.GameState;
 import Model.Houses;
 import Model.Spaces.Space;
 import Model.Cards.TitleDeedCard;
 
-/**
- * Represents a property space on the Monopoly board.
- * Properties can be bought, sold, and developed with houses and hotels.
- */
+
 public class Property extends Space {
     private int price;
     private int houses;
@@ -17,6 +17,7 @@ public class Property extends Space {
     private TitleDeedCard titleDeed;
 
     /**
+     * Author: Marena
      * Constructs a new property on the Monopoly board with a title deed card.
      *
      * @param name     The name of the property
@@ -44,6 +45,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Simplified constructor for when specific values are not provided.
      * This constructor can be used for backward compatibility.
      *
@@ -55,6 +57,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Calculates the base rent for a property based on its price.
      * By Monopoly standards, base rent is typically 10% of the purchase price.
      *
@@ -66,6 +69,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Calculates the rent values for properties with houses.
      * Follows standard Monopoly progression of rent increases.
      *
@@ -117,6 +121,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Calculates the hotel rent based on base rent and color group.
      *
      * @param baseRent The base rent without houses
@@ -144,6 +149,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the default price for a property based on its position.
      * This is a simplified approach for backward compatibility.
      *
@@ -158,6 +164,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the default color group for a property based on its position.
      * This is a simplified approach for backward compatibility.
      *
@@ -173,6 +180,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the title deed card for this property.
      *
      * @return The title deed card
@@ -182,6 +190,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the price of the property.
      *
      * @return The price of the property
@@ -191,6 +200,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Adds a house to the property if possible.
      *
      * @return True if a house was added, false otherwise
@@ -210,6 +220,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Removes a house from the property if possible.
      *
      * @return True if a house was removed, false otherwise
@@ -229,6 +240,8 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
+     * Edited by: Aiden Clare
      * Checks if the property is owned.
      *
      * @return True if the property is owned, false otherwise
@@ -238,6 +251,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Checks if the property is mortgaged.
      *
      * @return True if the property is mortgaged, false otherwise
@@ -247,6 +261,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Sets the mortgage status of the property.
      *
      * @param mortgaged The new mortgage status
@@ -257,6 +272,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Handles what happens when a player lands on this property.
      *
      * @param player The player who landed on the property
@@ -298,6 +314,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Calculates the rent based on houses, hotels, and monopoly ownership.
      *
      * @param gameState The current game state
@@ -322,6 +339,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Returns a string representation of the property.
      * @return A formatted string with property details
      */
@@ -339,6 +357,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Checks if the property has a hotel.
      *
      * @return True if the property has a hotel, false otherwise
@@ -348,6 +367,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the number of houses on the property.
      *
      * @return The number of houses
@@ -357,6 +377,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets the number of houses on the property.
      *
      * @param houses The new number of houses
@@ -366,6 +387,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the base rent of the property.
      *
      * @return The base rent
@@ -375,6 +397,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets whether the property has a hotel.
      *
      * @param hasHotel True if the property should have a hotel, false otherwise
@@ -384,6 +407,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the mortgage value of the property.
      *
      * @return The mortgage value (half the purchase price)
@@ -393,6 +417,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Gets the cost to unmortgage the property.
      *
      * @return The unmortgage cost (mortgage value plus 10% interest)
@@ -402,6 +427,7 @@ public class Property extends Space {
     }
 
     /**
+     * Author: Marena
      * Called when a player lands on the property.
      * This is an implementation of the method from the Space class.
      */

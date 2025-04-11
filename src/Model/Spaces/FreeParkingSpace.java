@@ -1,13 +1,13 @@
 package Model.Spaces;
-
-import Model.Board.Player;
-import Model.GameState;
-
 /**
  * this class represents the Free Parking space in Monopoly.
  * It extends the Model.Spaces.SpecialSpace class and implements the onLand method.
  * Author: Marena Abboud
  */
+import Model.Board.Player;
+import Model.GameState;
+
+
 public class FreeParkingSpace extends SpecialSpace {
     private int moneyPool; // Optional: for house rule where money from fines goes to Free Parking
 

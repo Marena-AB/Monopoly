@@ -1,18 +1,19 @@
 package Model.Property;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Represents a group of properties of the same color in Monopoly.
  * Color groups are used to determine when a player has a monopoly and
  * can build houses or charge double rent.
  */
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class ColorGroup {
     private PropertyColor color;
     private List<Property> properties;
 
     /**
+     * Author: Marena
      * Constructs a new color group with the specified color.
      *
      * @param color The color of this property group
@@ -23,6 +24,8 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
+     * Edited by Aiden Clare
      * Gets the color of this property group.
      *
      * @return The property color
@@ -32,6 +35,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Gets the display name of the color group.
      *
      * @return The display name
@@ -41,6 +45,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Gets the list of properties in this color group.
      *
      * @return The list of properties
@@ -50,6 +55,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Adds a property to this color group.
      *
      * @param property The property to add
@@ -62,6 +68,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Checks if a player owns all properties in this color group (has a monopoly).
      *
      * @param player The player to check
@@ -82,6 +89,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Gets the house price for properties in this color group.
      *
      * @return The house price
@@ -91,6 +99,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Gets the hotel price for properties in this color group (same as house price).
      *
      * @return The hotel price
@@ -100,6 +109,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Gets the expected size of this color group.
      *
      * @return The expected number of properties in this group
@@ -109,6 +119,7 @@ public class ColorGroup {
     }
 
     /**
+     * Author: Marena
      * Checks if all properties in this group have the same number of houses.
      *
      * @return true if development is even, false otherwise

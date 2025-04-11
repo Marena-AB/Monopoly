@@ -3,6 +3,7 @@ package Model.Spaces;
 import Model.Board.Player;
 
 /**
+ * Author: Marena
  * Space class represents a space on the Monopoly board.
  * It is an abstract class that serves as a base for different types of spaces,
  * including properties, railroads, and special spaces.
@@ -15,6 +16,7 @@ public abstract class Space {
     protected String colorGroup;
 
     /**
+     * Author: Aiden Clare
      * Constructor for the Space class.
      * @param name The name of the space
      * @param position The position on the board
@@ -27,6 +29,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the type of space.
      * @return The type of space
      */
@@ -35,6 +38,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the owner of the space.
      * @return The owner of the space
      */
@@ -43,6 +47,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Sets the owner of the space.
      * @param owner The player who owns the space
      */
@@ -51,6 +56,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Gets the name of the space.
      * @return The name of the space
      */
@@ -59,6 +65,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Gets the color group of the space.
      * @return The color group of the space
      */
@@ -67,6 +74,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Sets the color group of the space.
      * @param colorGroup The color group to set
      */
@@ -75,6 +83,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Method for handling a player landing on a special space.
      */
     public void playerOnSpecialSpace(){
@@ -82,6 +91,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Method for handling a player landing on a property.
      */
     public void playerOnProperty(){
@@ -89,6 +99,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Aiden Clare
      * Method for handling a player landing on a railroad.
      */
     public void playerOnRailroad(){
@@ -96,6 +107,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Method for handling a player landing on a card space.
      */
     public void playerOnCardSpace(){
@@ -103,6 +115,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Gets the string representation of the space.
      * @return The position, name, and type of the space
      */
@@ -112,6 +125,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Gets the position of the space.
      * @return The position of the space
      */
@@ -120,6 +134,7 @@ public abstract class Space {
     }
 
     /**
+     * Author: Marena
      * Sets the position of the space.
      * @param position The position to set
      */

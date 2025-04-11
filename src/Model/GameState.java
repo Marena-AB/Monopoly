@@ -13,6 +13,8 @@ import Model.Spaces.Space;
 import java.util.*;
 
 /**
+ * Author: Aiden Clare
+ * Edited by: Marena
  * This class represents the state of the game, including players, board, and game logic.
  * It manages player turns, properties, money transactions, and game status.
  */
@@ -30,6 +32,8 @@ public class GameState {
     private Bank bank;
 
     /**
+     * Author: Aiden Clare
+     * Edited by: Marena
      * Constructor for GameState.
      * Initializes the game state with players and a gameboard.
      *
@@ -62,6 +66,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Initializes the game, including giving money to players and setting up the game state.
      */
     public void initializeGame() {
@@ -86,6 +91,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Initializes the Chance card deck with standard Monopoly Chance cards.
      */
     private void initializeChanceCards() {
@@ -115,6 +121,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Initializes the Community Chest card deck with standard Monopoly Community Chest cards.
      */
     private void initializeCommunityChestCards() {
@@ -144,6 +151,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Gets the bank for this game.
      *
      * @return The bank
@@ -153,6 +161,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Sets the bank for this game.
      *
      * @param bank The bank to use
@@ -171,6 +180,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Gets the list of players in the game.
      *
      * @return The list of players
@@ -180,6 +190,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the current player.
      *
      * @return The current player
@@ -189,6 +200,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Moves to the next player's turn.
      * This method updates the current player index to the next player in the list.
      */
@@ -197,6 +209,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the gameboard for this game.
      *
      * @return The gameboard
@@ -206,6 +219,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the property ownership map.
      * This map contains the property IDs and their corresponding owner names.
      *
@@ -216,6 +230,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Rolls the dice and returns the result.
      * This method uses the Dice class to roll two dice and returns the sum of their values.
      *
@@ -226,6 +241,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the values of the dice.
      * This method returns an array containing the values of the two dice.
      *
@@ -236,6 +252,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Draws a Chance card from the deck.
      * If the deck is exhausted, it is reshuffled.
      *
@@ -267,6 +284,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Draws a Community Chest card from the deck.
      * If the deck is exhausted, it is reshuffled.
      *
@@ -298,6 +316,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Returns a "Get Out of Jail Free" card to the appropriate deck.
      *
      * @param cardType The type of card ("Chance" or "Community Chest")
@@ -313,6 +332,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Transfers money between two players.
      * This method updates the money of both players involved in the transaction.
      *
@@ -331,6 +351,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Collects money from the bank for a player.
      *
      * @param player The player receiving money
@@ -341,6 +362,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Pays money to the bank from a player.
      *
      * @param player The player paying money
@@ -352,6 +374,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Checks if the game is still active.
      *
      * @return true if the game is active, false otherwise
@@ -361,6 +384,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Checks if a player is in jail.
      *
      * @param player The player to check
@@ -371,6 +395,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Sends a player to jail.
      *
      * @param player The player to send to jail
@@ -382,6 +407,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Releases a player from jail.
      *
      * @param player The player to release from jail
@@ -393,6 +419,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Displays the current game state.
      * This is a view functionality and should eventually be moved to the View layer.
      */
@@ -404,6 +431,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Displays the status of a player.
      * This is a view functionality and should eventually be moved to the View layer.
      *
@@ -415,6 +443,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Handles a player going bankrupt.
      * This includes returning all properties to the bank and removing the player from the game.
      *
@@ -444,6 +473,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Gets the dice for this game.
      *
      * @return The dice
@@ -453,6 +483,7 @@ public class GameState {
     }
 
     /**
+     * Author: Marena
      * Sets the dice for this game.
      *
      * @param dice The new dice
@@ -462,6 +493,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the Chance card deck.
      *
      * @return The Chance card deck
@@ -471,6 +503,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the Community Chest card deck.
      *
      * @return The Community Chest card deck
@@ -480,6 +513,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets the game active status.
      *
      * @param gameActive The new game active status
@@ -489,6 +523,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets the players for this game.
      *
      * @param players The new list of players
@@ -498,6 +533,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets the gameboard for this game.
      *
      * @param board The new gameboard
@@ -507,6 +543,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Gets the current player index.
      *
      * @return The current player index
@@ -516,6 +553,7 @@ public class GameState {
     }
 
     /**
+     * Author: Aiden Clare
      * Sets the current player index.
      *
      * @param index The new current player index

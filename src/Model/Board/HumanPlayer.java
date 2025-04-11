@@ -8,6 +8,7 @@ package Model.Board;
 public class HumanPlayer extends Player {
 
     /**
+     * Author: Marena
      * Constructs a new human player with the given name.
      *
      * @param name The player's name
@@ -17,6 +18,7 @@ public class HumanPlayer extends Player {
     }
 
     /**
+     * Author: Marena
      * Prompts the human player to make a decision about buying a property.
      *
      * @param propertyName The name of the property
@@ -31,6 +33,7 @@ public class HumanPlayer extends Player {
     }
 
     /**
+     * Author: Marena
      * Prompts the human player to make a decision about using a Get Out of Jail Free card.
      *
      * @return true if the player wants to use the card, false otherwise
@@ -43,6 +46,7 @@ public class HumanPlayer extends Player {
     }
 
     /**
+     * Author: Marena
      * Prompts the human player to choose from jail options.
      *
      * @return int representing the chosen option (1 = pay, 2 = use card, 3 = roll)

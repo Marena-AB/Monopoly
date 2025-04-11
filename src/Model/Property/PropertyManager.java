@@ -1,4 +1,5 @@
-package Model.Property; /**
+package Model.Property;
+/**
  * Model.Property.PropertyManager.java
  * This class manages a collection of properties in a game.
  * It allows adding, removing, and retrieving properties.
