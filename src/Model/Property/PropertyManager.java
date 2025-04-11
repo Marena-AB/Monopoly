@@ -4,8 +4,6 @@ package Model.Property; /**
  * It allows adding, removing, and retrieving properties.
  */
 
-import Model.Property.Property;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,10 +53,11 @@ public class PropertyManager {
      * @return
      */
 
+
     public Property getProperty(int position) {
         return properties.stream()
                 .filter(property -> property.getPosition() == position)
-                .findFirst()
+                .reduce((first, second) -> second) // Take the last property
                 .orElse(null);
     }
 

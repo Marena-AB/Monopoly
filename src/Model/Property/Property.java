@@ -94,10 +94,10 @@ public class Property extends Space {
                 break;
             case "red":
             case "yellow":
-                houseRents[0] = baseRent * 6;    // 1 house
-                houseRents[1] = baseRent * 18;   // 2 houses
-                houseRents[2] = baseRent * 50;   // 3 houses
-                houseRents[3] = baseRent * 100;  // 4 houses
+                houseRents[0] = baseRent * 3;    // 1 house
+                houseRents[1] = baseRent * 9;    // 2 houses
+                houseRents[2] = baseRent * 27;   // 3 houses
+                houseRents[3] = baseRent * 50;   // 4 houses
                 break;
             case "green":
             case "dark blue":
