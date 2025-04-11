@@ -1,3 +1,7 @@
+/**
+ * Monopoly Game GUI
+ * This class is responsible for the visual representation of the Monopoly game.
+ */
 package View;
 
 import Model.Board.Bank;
@@ -23,10 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Monopoly Game GUI
- * This class is responsible for the visual representation of the Monopoly game.
- */
 public class GUI extends JFrame {
     // Game components
     private GameState gameState;
@@ -70,6 +70,7 @@ public class GUI extends JFrame {
 
     /**
      * Constructor that initializes the GUI
+     * Author: Marena
      */
     public GUI() {
         super("Monopoly");
@@ -99,6 +100,7 @@ public class GUI extends JFrame {
 
     /**
      * Sets up the game components
+     * Author: Marena
      */
     private void setupGame() {
         // Initialize tokens
@@ -125,6 +127,7 @@ public class GUI extends JFrame {
 
     /**
      * Sets up players for the game
+     * Author: Marena
      */
     private List<Player> setupPlayers() {
         List<Player> setupPlayers = new ArrayList<>();
@@ -149,6 +152,7 @@ public class GUI extends JFrame {
 
     /**
      * Prompts for the number of players
+     * Author: Marena
      */
     private int promptNumberOfPlayers() {
         String[] options = {"2", "3", "4"};
@@ -169,6 +173,7 @@ public class GUI extends JFrame {
 
     /**
      * Prompts for a player's name
+     * Author: Marena
      */
     private String promptPlayerName(int playerNumber) {
         String name = JOptionPane.showInputDialog(
@@ -183,6 +188,7 @@ public class GUI extends JFrame {
 
     /**
      * Prompts for a player's token
+     * Author: Marena
      */
     private String promptPlayerToken(Player player) {
         String availableTokens = Tokens.getavailabletokens();
@@ -208,6 +214,7 @@ public class GUI extends JFrame {
 
     /**
      * Updates the entire UI
+     * Author: Marena
      */
     private void updateUI() {
         updatePlayerInfo();
@@ -219,6 +226,7 @@ public class GUI extends JFrame {
 
     /**
      * Logs a message to the game log
+     * Author: Marena
      */
     private void logMessage(String message) {
         gameLog.append(message + "\n");
@@ -227,6 +235,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates all UI components
      */
     private void createUIComponents() {
@@ -286,6 +295,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates the player information panel
      */
     private JPanel createPlayerInfoPanel() {
@@ -299,6 +309,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates the action panel with buttons
      */
     private JPanel createActionPanel() {
@@ -340,6 +351,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates a simpler visual representation of a die
      */
     private JPanel createSimpleDiePanel(int value) {
@@ -376,6 +388,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates the card display panel for Chance and Community Chest
      */
     private JPanel createCardDisplayPanel() {
@@ -388,6 +401,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Updates the player information panel
      */
     private void updatePlayerInfo() {
@@ -456,6 +470,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Updates the action buttons based on current game state and turn phase
      */
     private void updateActionButtons() {
@@ -524,6 +539,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Updates the dice display with a simpler approach
      */
     private void updateDiceDisplay() {
@@ -586,6 +602,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Creates a visual representation of a die with the specified value
      */
     private JPanel createDiePanel(int value) {
@@ -674,6 +691,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Updates the card display
      */
     private void updateCardDisplay() {
@@ -707,6 +725,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles rolling dice without animation
      */
     private void handleRollDice() {
@@ -741,6 +760,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Shows a die roll animation effect
      */
     private void showDiceRollAnimation(final int finalDie1, final int finalDie2) {
@@ -771,6 +791,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles buying a property
      */
     private void handleBuyProperty() {
@@ -802,6 +823,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles starting an auction for a property
      */
     private void handleAuctionProperty() {
@@ -819,6 +841,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles building a house on a property
      */
     private void handleBuildHouse() {
@@ -865,6 +888,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles mortgaging a property
      */
     private void handleMortgage() {
@@ -909,6 +933,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles unmortgaging a property
      */
     private void handleUnmortgage() {
@@ -953,6 +978,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles ending the current player's turn
      */
     private void handleEndTurn() {
@@ -975,6 +1001,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles paying jail fee
      */
     private void handlePayJailFee() {
@@ -1004,6 +1031,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles using a Get Out of Jail Free card
      */
     private void handleUseJailCard() {
@@ -1033,6 +1061,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Handles rolling for jail release
      */
     private void handleRollForJail() {
@@ -1096,6 +1125,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Inner class for the auction dialog
      */
     private class AuctionDialog extends JDialog {
@@ -1106,6 +1136,7 @@ public class GUI extends JFrame {
         private int highestBid;
 
         /**
+         * Author: Marena
          * Constructs a new auction dialog
          */
         public AuctionDialog(JFrame parent, List<Player> players, Space propertySpace) {
@@ -1122,6 +1153,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Initializes the auction dialog components
          */
         private void initComponents() {
@@ -1174,6 +1206,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Places a bid for a player
          */
         private void placeBid(Player player) {
@@ -1222,6 +1255,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Finishes the auction and sells the property to the highest bidder
          */
         private void finishAuction() {
@@ -1275,6 +1309,8 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
+     * Edited by: Aiden Clare
      * BoardPanel class to render the Monopoly game board
      */
     private class BoardPanel extends JPanel {
@@ -1302,6 +1338,13 @@ public class GUI extends JFrame {
         private Image houseImage;
         private Image hotelImage;
 
+        /**
+         * Author: Marena
+         * Edited by: Aiden Clare
+         * Constructor for BoardPanel
+         * Sets up the board size, background color, and loads images
+         */
+
         // In the BoardPanel constructor:
         public BoardPanel() {
             setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
@@ -1320,6 +1363,12 @@ public class GUI extends JFrame {
                 hotelImage = null;
             }
         }
+
+        /**
+         * Author: Marena
+         * Paints the board and its components
+         * @param g the <code>Graphics</code> object to protect
+         */
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -1344,6 +1393,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws the board outline
          */
         private void drawBoardOutline(Graphics2D g2d) {
@@ -1376,6 +1426,7 @@ public class GUI extends JFrame {
 
 
         /**
+         * Author: Marena
          * Draws the corner spaces (GO, Jail, Free Parking, Go To Jail)
          */
         private void drawCornerSpaces(Graphics2D g2d) {
@@ -1415,6 +1466,17 @@ public class GUI extends JFrame {
             g2d.drawString("GO TO", BOARD_SIZE - SPACE_SIZE + 10, 20);
             g2d.drawString("JAIL", BOARD_SIZE - SPACE_SIZE + 15, 40);
         }
+
+        /**
+         * Author: Aiden Clare
+         * Draws the houses and hotels on properties
+         * @param g2d
+         * @param property
+         * @param x
+         * @param y
+         * @param spaceWidth
+         * @param spaceHeight
+         */
         private void drawHouses(Graphics2D g2d, Property property, int x, int y, int spaceWidth, int spaceHeight) {
             if (property.getHouses() == 0) return;
 
@@ -1449,6 +1511,8 @@ public class GUI extends JFrame {
             }
         }
         /**
+         * Author: Marena
+         * Edited by: Aiden Clare
          * Draws the side spaces (properties, utilities, railroads, etc.) with improved text spacing
          */
         private void drawSideSpaces(Graphics2D g2d) {
@@ -1784,6 +1848,7 @@ public class GUI extends JFrame {
 
 
         /**
+         * Author: Marena
          * Improved method to draw wrapped text for property names
          */
         private void drawWrappedText(Graphics2D g2d, String text, int x, int y, int width) {
@@ -1854,6 +1919,7 @@ public class GUI extends JFrame {
 
 
         /**
+         * Author: Marena
          * Helper method to draw text for top row spaces with better visibility - simplified version
          */
         private void drawTopRowText(Graphics2D g2d, String text, int x, int y) {
@@ -1878,6 +1944,7 @@ public class GUI extends JFrame {
 
 
         /**
+         * Author: Marena
          * Draws the central Monopoly logo
          */
         private void drawCentralLogo(Graphics2D g2d) {
@@ -1915,6 +1982,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Helper method to draw a diamond-shaped card with text
          */
         private void drawDiamondCard(Graphics2D g2d, String text, int x, int y, Color fillColor, Color textColor) {
@@ -1965,6 +2033,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws player tokens at their current positions on the board
          */
         private void drawPlayerTokens(Graphics2D g2d) {
@@ -1979,6 +2048,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Gets the x,y coordinates for drawing a token at a given board position
          */
         private Point getTokenPosition(int position, Player player) {
@@ -2029,6 +2099,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws a token for a player at the specified coordinates
          */
         private void drawToken(Graphics2D g2d, Player player, int x, int y) {
@@ -2088,6 +2159,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Helper method to get the color index for a property color group
          */
         private int getColorIndex(String colorGroup) {
@@ -2107,6 +2179,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws centered text
          */
         private void drawCenteredString(Graphics2D g2d, String text, int x, int y, int width) {
@@ -2116,6 +2189,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws rotated text
          */
         private void drawRotatedText(Graphics2D g2d, String text, int x, int y, double angleDegrees) {
@@ -2129,6 +2203,7 @@ public class GUI extends JFrame {
         }
 
         /**
+         * Author: Marena
          * Draws rotated and centered text
          */
         private void drawRotatedCenteredString(Graphics2D g2d, String text, int x, int y, int width, double angleDegrees) {
@@ -2153,6 +2228,7 @@ public class GUI extends JFrame {
     }
 
     /**
+     * Author: Marena
      * Main method to launch the application
      */
     public static void main(String[] args) {
